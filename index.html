@@ -1,0 +1,2635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <!-- Viewport Lock for Touch Kiosk Displays -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Urban Memory Rush – Yamaha NMAX 155 (1080x1920 Kiosk Edition)</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Google Fonts: Orbitron, Rajdhani & Montserrat -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,600;0,700;0,800;0,900;1,800;1,900&family=Orbitron:wght@500;700;800;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Preload Critical Game Images for Live Server Fast-Boot -->
+  <link rel="preload" as="image" href="Yamaha Logo for Dark Background.png">
+  <link rel="preload" as="image" href="nmax.png">
+  <link rel="preload" as="image" href="hero-bg.jpg">
+  <link rel="preload" as="image" href="gameplay-bg.jpg">
+  <link rel="preload" as="image" href="gameplay-fast-bg.jpg">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            orbitron: ['Orbitron', 'sans-serif'],
+            rajdhani: ['Rajdhani', 'sans-serif'],
+            montserrat: ['Montserrat', 'sans-serif'],
+          },
+          colors: {
+            yamahaRed: '#E60012',
+            neonCyan: '#00F0FF',
+            neonBlue: '#0072FF',
+            neonGold: '#FFAA00',
+            darkNavy: '#020712',
+          },
+        }
+      }
+    }
+  </script>
+
+  <!-- QR Code Generator (post-game prize scan) -->
+  <script src="https://cdn.jsdelivr.net/gh/davidshimjs/qrcodejs/qrcode.min.js"></script>
+
+  <style>
+    /* Kiosk Hardware Hardening */
+    * {
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: #01040a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Rajdhani', sans-serif;
+    }
+
+    /* Fixed 1080x1920 Kiosk Virtual Container */
+    #kioskContainer {
+      width: 1080px;
+      height: 1920px;
+      min-width: 1080px;
+      min-height: 1920px;
+      max-width: 1080px;
+      max-height: 1920px;
+      position: absolute;
+      transform-origin: center center;
+      overflow: hidden;
+      background-color: #020712;
+      box-shadow: 0 0 80px rgba(0, 0, 0, 0.95);
+    }
+
+    /* Metallic Chrome Gradient Text */
+    .nmax-metallic {
+      background: linear-gradient(180deg, #FFFFFF 0%, #E5EEFA 38%, #8BA3C7 54%, #FFFFFF 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.85)) drop-shadow(0 0 14px rgba(0, 225, 255, 0.75));
+    }
+
+    /* Hero Title Metallic Ice-Cyan Gradient */
+    .hero-title-metal {
+      background: linear-gradient(180deg, #FFFFFF 0%, #ECFBFF 45%, #8AE8FF 78%, #D4F7FF 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 4px 0px rgba(2, 18, 48, 0.95)) drop-shadow(0 0 26px rgba(0, 229, 255, 0.95)) drop-shadow(0 0 55px rgba(0, 140, 255, 0.7));
+    }
+
+    /* Neon Outline Pill Button (PLAY / START) */
+    .hero-play-btn {
+      position: relative;
+      background: linear-gradient(180deg, rgba(10, 34, 78, 0.88) 0%, rgba(3, 12, 34, 0.95) 100%);
+      border: 3px solid #00E5FF;
+      box-shadow:
+        0 0 24px rgba(0, 229, 255, 0.95),
+        0 0 55px rgba(0, 140, 255, 0.6),
+        inset 0 0 18px rgba(0, 229, 255, 0.45);
+      transition: transform 0.12s ease, box-shadow 0.2s ease, filter 0.15s ease;
+      cursor: pointer;
+    }
+    .hero-play-btn:hover {
+      filter: brightness(1.12);
+    }
+    .hero-play-btn:active {
+      transform: scale(0.96);
+      filter: brightness(1.22);
+    }
+
+    /* Gold Outline Button (NEXT LEVEL) */
+    .gold-btn {
+      position: relative;
+      background: linear-gradient(180deg, rgba(70, 40, 4, 0.9) 0%, rgba(34, 18, 2, 0.95) 100%);
+      border: 3px solid #FFB300;
+      box-shadow:
+        0 0 24px rgba(255, 179, 0, 0.85),
+        0 0 55px rgba(255, 140, 0, 0.5),
+        inset 0 0 18px rgba(255, 190, 60, 0.4);
+      cursor: pointer;
+      transition: transform 0.12s ease, filter 0.15s ease;
+    }
+    .gold-btn:active {
+      transform: scale(0.96);
+      filter: brightness(1.25);
+    }
+
+    /* Chamfered Glass Card */
+    .chamfer-glass {
+      background: radial-gradient(circle at 50% 45%, rgba(6, 36, 84, 0.88) 0%, rgba(2, 12, 34, 0.94) 100%);
+      clip-path: polygon(34px 0, calc(100% - 34px) 0, 100% 34px, 100% calc(100% - 34px), calc(100% - 34px) 100%, 34px 100%, 0 calc(100% - 34px), 0 34px);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+    }
+
+    /* Hexagon Tab Title */
+    .hex-tab-fill {
+      background: linear-gradient(180deg, #072252 0%, #03112d 100%);
+      clip-path: polygon(28px 0, calc(100% - 28px) 0, 100% 50%, calc(100% - 28px) 100%, 28px 100%, 0 50%);
+    }
+
+    /* Skewed HUD Pill */
+    .hud-pill {
+      border-radius: 14px;
+      background: rgba(3, 18, 45, 0.88);
+      border: 2px solid #00D2FF;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 0 22px rgba(0, 200, 255, 0.72), inset 0 0 14px rgba(0, 185, 255, 0.28);
+    }
+
+    /* ===== Memory Tiles ===== */
+    .memory-tile {
+      position: relative;
+      overflow: hidden;
+      border-radius: 14px;
+      border: 2.5px solid rgba(0, 210, 255, 0.45);
+      background: #04122e;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.55), inset 0 0 14px rgba(0, 185, 255, 0.14);
+      cursor: pointer;
+      transition: transform 0.12s ease, box-shadow 0.2s ease, border-color 0.2s ease, filter 0.25s ease;
+    }
+    .memory-tile img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.35s ease, filter 0.25s ease;
+    }
+    .memory-tile:active { transform: scale(0.95); }
+
+    /* Highlight state while memorizing */
+    .tile-highlight {
+      border-color: #FFFFFF;
+      box-shadow: 0 0 30px rgba(0, 229, 255, 1), 0 0 60px rgba(0, 140, 255, 0.7), inset 0 0 18px rgba(0, 229, 255, 0.55);
+      transform: scale(1.06);
+      z-index: 20;
+    }
+    .tile-highlight img { filter: brightness(1.2) saturate(1.15); }
+
+    /* Correct pick */
+    .tile-correct {
+      border-color: #00FFA8;
+      box-shadow: 0 0 26px rgba(0, 255, 168, 0.9), inset 0 0 16px rgba(0, 255, 168, 0.35);
+      cursor: default;
+    }
+    .tile-correct img { filter: brightness(1.1); }
+
+    /* Wrong pick flash */
+    .tile-wrong {
+      border-color: #FF3B5C;
+      box-shadow: 0 0 30px rgba(255, 59, 92, 0.95), inset 0 0 18px rgba(255, 59, 92, 0.5);
+      animation: shakeX 0.4s ease;
+    }
+    @keyframes shakeX {
+      0%, 100% { transform: translateX(0); }
+      20% { transform: translateX(-9px); }
+      40% { transform: translateX(9px); }
+      60% { transform: translateX(-6px); }
+      80% { transform: translateX(6px); }
+    }
+
+    /* Locked / invisible state after correct pick */
+    .tile-solved img { filter: brightness(0.55); }
+
+    /* Level Select Card */
+    .level-card {
+      position: relative;
+      border-radius: 16px;
+      border: 2.5px solid rgba(0, 210, 255, 0.4);
+      background: linear-gradient(180deg, rgba(6, 30, 68, 0.92) 0%, rgba(2, 12, 32, 0.96) 100%);
+      box-shadow: 0 10px 26px rgba(0, 0, 0, 0.55), inset 0 0 18px rgba(0, 185, 255, 0.12);
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+      overflow: hidden;
+    }
+    .level-card:active { transform: scale(0.97); }
+    .level-card.selected {
+      border-color: #00F0FF;
+      box-shadow: 0 0 34px rgba(0, 229, 255, 0.95), 0 10px 26px rgba(0, 0, 0, 0.6), inset 0 0 22px rgba(0, 229, 255, 0.28);
+    }
+    .level-card.selected .level-check { opacity: 1; }
+
+    /* Progress slot (recreate phase) */
+    .progress-slot {
+      width: 54px;
+      height: 54px;
+      border-radius: 12px;
+      border: 2px solid rgba(0, 210, 255, 0.5);
+      background: rgba(3, 18, 45, 0.85);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 900;
+      font-size: 22px;
+      color: rgba(0, 229, 255, 0.5);
+      box-shadow: inset 0 0 10px rgba(0, 185, 255, 0.2);
+    }
+    .progress-slot.done {
+      border-color: #00FFA8;
+      color: #04122e;
+      background: linear-gradient(180deg, #7CFFD4, #00E693);
+      box-shadow: 0 0 18px rgba(0, 255, 168, 0.85);
+    }
+    .progress-slot.current {
+      border-color: #FFFFFF;
+      color: #FFFFFF;
+      box-shadow: 0 0 18px rgba(255, 255, 255, 0.8);
+      animation: slotPulse 0.9s ease-in-out infinite;
+    }
+    @keyframes slotPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.12); }
+    }
+
+    /* Virtual Keyboard Key */
+    .vk-key {
+      background: linear-gradient(180deg, #092348, #051429);
+      border: 1.5px solid rgba(0, 240, 255, 0.4);
+      color: #E2E8F0;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.5), inset 0 0 8px rgba(0, 240, 255, 0.15);
+      transition: all 0.08s ease;
+      cursor: pointer;
+    }
+    .vk-key:active {
+      transform: scale(0.92);
+      background: #00F0FF;
+      color: #020712;
+      box-shadow: 0 0 20px #00F0FF;
+    }
+
+    /* Floating Score Popup */
+    .floating-score {
+      position: absolute;
+      pointer-events: none;
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 900;
+      color: #00F0FF;
+      text-shadow: 0 0 16px #00F0FF, 0 0 32px #0072FF;
+      animation: floatUp 0.8s ease-out forwards;
+      transform: translate(-50%, -50%);
+      z-index: 80;
+    }
+    @keyframes floatUp {
+      0% { opacity: 1; transform: translate(-50%, -20%) scale(0.9); }
+      50% { opacity: 1; transform: translate(-50%, -80%) scale(1.3); }
+      100% { opacity: 0; transform: translate(-50%, -150%) scale(1.4); }
+    }
+
+    /* Countdown ring */
+    .countdown-ring { transition: stroke-dashoffset 0.1s linear; }
+
+    /* Subtle hero motion */
+    @keyframes subtleFloat {
+      0%, 100% { transform: scale(1.01) translateY(0px); }
+      50% { transform: scale(1.02) translateY(-4px); }
+    }
+    .hero-bg-motion { animation: subtleFloat 9s ease-in-out infinite; }
+
+    /* Registration field boxes */
+    .reg-field {
+      border-radius: 18px;
+      background: rgba(3, 18, 45, 0.9);
+      border: 2.5px solid rgba(0, 210, 255, 0.45);
+      box-shadow: 0 0 20px rgba(0, 200, 255, 0.45), inset 0 0 14px rgba(0, 185, 255, 0.2);
+      cursor: pointer;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    .reg-field.active {
+      border-color: #FFFFFF;
+      box-shadow: 0 0 26px rgba(0, 229, 255, 0.95), inset 0 0 16px rgba(0, 229, 255, 0.35);
+    }
+
+    /* QR prize box */
+    .qr-white {
+      background: #FFFFFF;
+      padding: 22px;
+      border-radius: 22px;
+      box-shadow: 0 0 34px rgba(0, 229, 255, 0.85), 0 0 70px rgba(0, 140, 255, 0.5);
+    }
+
+    /* Blink prompt */
+    .animate-blink { animation: blinkPulse 1.4s ease-in-out infinite; }
+    @keyframes blinkPulse {
+      0%, 100% { opacity: 0.65; }
+      50% { opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ==================== 1080x1920 KIOSK VIRTUAL STAGE ==================== -->
+  <div id="kioskContainer">
+
+    <!-- ==================== PERSISTENT TOP BRANDING HEADER ==================== -->
+    <header class="absolute top-0 left-0 w-[1080px] h-[130px] px-12 pt-6 flex justify-between items-start z-50 pointer-events-none">
+
+      <!-- Top-Left: Official Yamaha Logo (tap = home, long-press = settings) -->
+      <div id="logoWrap" class="flex items-center space-x-3 cursor-pointer pointer-events-auto group">
+        <img src="Yamaha Logo for Dark Background.png" alt="Yamaha" class="h-[76px] w-auto object-contain drop-shadow-[0_0_20px_rgba(230,0,18,0.55)] group-hover:scale-105 transition-transform" />
+      </div>
+
+      <!-- Center: Persistent Kiosk Utility Controls (Home, Settings, Mute & Fullscreen) -->
+      <div class="flex items-center space-x-3 pt-1 pointer-events-auto">
+        <!-- GLOBAL HOME BUTTON -->
+        <button id="globalHomeBtn" title="Go to Home Screen" class="h-11 px-4 rounded-full bg-slate-950/85 border border-cyan-400/50 backdrop-blur-md flex items-center space-x-2 text-neonCyan shadow-[0_0_15px_rgba(0,240,255,0.35)] hover:border-cyan-300 hover:text-white active:scale-95 transition cursor-pointer">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+          </svg>
+          <span class="font-orbitron font-bold text-[13px] tracking-wider">HOME</span>
+        </button>
+
+        <!-- GLOBAL SETTINGS BUTTON -->
+        <button id="globalSettingsBtn" title="Operator & Prize Settings" class="h-11 px-4 rounded-full bg-slate-950/85 border border-amber-400/50 backdrop-blur-md flex items-center space-x-2 text-amber-300 shadow-[0_0_15px_rgba(255,187,0,0.35)] hover:border-amber-300 hover:text-white active:scale-95 transition cursor-pointer">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          <span class="font-orbitron font-bold text-[13px] tracking-wider">SETTINGS</span>
+        </button>
+
+        <button id="muteBtn" title="Toggle Sound" class="w-11 h-11 rounded-full bg-slate-950/70 border border-cyan-400/40 backdrop-blur-md flex items-center justify-center text-neonCyan shadow-[0_0_15px_rgba(0,240,255,0.3)] active:scale-95 transition cursor-pointer">
+          <svg id="soundOnIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+          </svg>
+          <svg id="soundOffIcon" class="w-5 h-5 hidden text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" />
+          </svg>
+        </button>
+
+        <button id="fullscreenBtn" title="Fullscreen" class="w-11 h-11 rounded-full bg-slate-950/70 border border-cyan-400/40 backdrop-blur-md flex items-center justify-center text-neonCyan shadow-[0_0_15px_rgba(0,240,255,0.3)] active:scale-95 transition cursor-pointer">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M4 8V4m0 0h4M4 4l5 5m11-5h-4m4 0v4m0-4l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Top-Right: NMAX 155 Official White Wordmark Logo -->
+      <div class="flex items-center pt-3 select-none">
+        <img src="nmax.png" alt="NMAX 155" class="h-[44px] w-auto object-contain drop-shadow-[0_0_16px_rgba(0,225,255,0.65)]" />
+      </div>
+    </header>
+
+
+    <!-- ==================== SCREEN 1: ATTRACT / TITLE ==================== -->
+    <section id="screenTitle" class="absolute inset-0 w-[1080px] h-[1920px] flex flex-col justify-between items-center overflow-hidden z-20 transition-opacity duration-300">
+
+      <!-- Full-Bleed Hero Night City & Rider Key Visual -->
+      <div class="absolute inset-0 z-0 pointer-events-none">
+        <img src="hero-bg.jpg" alt="Yamaha NMAX 155 Urban Memory Rush" class="w-full h-full object-cover object-center hero-bg-motion" />
+        <div class="absolute inset-x-0 top-0 h-[640px] bg-gradient-to-b from-[#020817]/85 via-[#030d24]/35 to-transparent"></div>
+        <div class="absolute inset-x-0 bottom-0 h-[420px] bg-gradient-to-t from-[#020714] via-[#02091b]/80 to-transparent"></div>
+      </div>
+
+      <!-- Upper Hero Typography & Prominent Yamaha Branding -->
+      <div class="relative z-10 w-full flex flex-col items-center pt-[130px] px-10 text-center">
+
+        <!-- Center Yamaha Official Branding -->
+        <div class="flex flex-col items-center mb-6">
+          <img src="Yamaha Logo for Dark Background.png" alt="Yamaha" class="h-[84px] w-auto object-contain drop-shadow-[0_0_26px_rgba(230,0,18,0.65)]" />
+          <span class="font-orbitron font-bold tracking-[0.35em] text-[15px] text-cyan-300/85 mt-2 uppercase drop-shadow-[0_0_8px_rgba(0,229,255,0.6)]">REVS YOUR HEART</span>
+        </div>
+
+        <!-- Main Stacked Title: URBAN / MEMORY / RUSH -->
+        <h1 class="flex flex-col items-center uppercase select-none">
+          <span class="font-orbitron font-black italic text-[96px] leading-[0.9] tracking-[0.02em] hero-title-metal pr-3">URBAN</span>
+          <span class="font-orbitron font-black italic text-[96px] leading-[0.94] tracking-[0.01em] hero-title-metal pr-3">MEMORY</span>
+          <span class="font-orbitron font-black italic text-[114px] leading-[0.94] tracking-[0.01em] hero-title-metal pr-3">RUSH</span>
+        </h1>
+
+        <!-- Glowing Divider -->
+        <div class="relative w-[560px] h-[6px] mt-6">
+          <div class="absolute inset-x-0 h-[3px] top-1/2 bg-gradient-to-r from-transparent via-neonCyan to-transparent shadow-[0_0_14px_#00F0FF]"></div>
+        </div>
+
+        <!-- Tagline -->
+        <p class="font-montserrat font-bold italic text-[34px] leading-[1.35] text-white mt-6 tracking-wide drop-shadow-[0_2px_16px_rgba(0,220,255,0.75)]">
+          How sharp is your <span class="text-cyan-200 drop-shadow-[0_0_18px_rgba(0,229,255,0.95)]">urban instinct?</span>
+        </p>
+        <p class="font-rajdhani font-semibold text-[24px] text-cyan-100/85 mt-3 tracking-[0.08em] uppercase">
+          Watch the city. Remember the sequence. Ride the recall.
+        </p>
+      </div>
+
+      <!-- Bottom Neon Outline "PLAY ▶" Button -->
+      <div class="relative z-10 w-full flex flex-col items-center pb-[130px]">
+        <button id="btnTitlePlay" class="hero-play-btn w-[430px] h-[98px] rounded-full font-orbitron font-black text-[38px] tracking-[0.16em] text-white flex items-center justify-center space-x-5">
+          <span class="drop-shadow-[0_0_10px_rgba(255,255,255,0.6)]">PLAY</span>
+          <svg class="w-8 h-8 fill-white drop-shadow-[0_0_12px_rgba(0,240,255,0.9)]" viewBox="0 0 24 24">
+            <polygon points="5,3 21,12 5,21" />
+          </svg>
+        </button>
+        <span class="mt-4 font-orbitron text-[13px] tracking-[0.35em] text-cyan-300/75 uppercase animate-blink">
+          TOUCH SCREEN TO START
+        </span>
+      </div>
+    </section>
+
+
+    <!-- ==================== SCREEN 2: SELECT LEVEL ==================== -->
+    <section id="screenLevelSelect" class="hidden absolute inset-0 w-[1080px] h-[1920px] flex flex-col items-center overflow-hidden z-20">
+
+      <!-- Blurred Night City Backdrop -->
+      <div class="absolute inset-0 z-0 pointer-events-none">
+        <img src="gameplay-bg.jpg" alt="" class="w-full h-full object-cover object-center blur-[8px] brightness-[0.45] scale-105" />
+        <div class="absolute inset-0 bg-[#020a1c]/55"></div>
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(0,140,255,0.18)_0%,_rgba(2,7,20,0.85)_78%)]"></div>
+      </div>
+
+      <!-- Top: Yamaha & NMAX 155 Wordmark + SELECT LEVEL Tab -->
+      <div class="relative z-10 flex flex-col items-center pt-[150px] select-none">
+        <div class="flex items-center space-x-6">
+          <img src="Yamaha Logo for Dark Background.png" alt="Yamaha" class="h-[54px] w-auto object-contain drop-shadow-[0_0_18px_rgba(230,0,18,0.55)]" />
+          <div class="h-8 w-[2px] bg-cyan-400/40"></div>
+          <img src="nmax.png" alt="NMAX 155" class="h-[46px] w-auto object-contain drop-shadow-[0_0_16px_rgba(0,225,255,0.7)]" />
+        </div>
+
+        <div class="relative mt-7 w-[460px] h-[84px] flex items-center justify-center">
+          <div class="hex-tab-fill absolute inset-0"></div>
+          <svg class="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 460 84" preserveAspectRatio="none" style="filter: drop-shadow(0 0 14px rgba(0, 210, 255, 0.95));">
+            <polygon points="28,1.5 432,1.5 458.5,42 432,82.5 28,82.5 1.5,42" fill="none" stroke="#00D8FF" stroke-width="3" vector-effect="non-scaling-stroke" />
+          </svg>
+          <h2 class="relative z-10 font-orbitron font-black italic text-[38px] tracking-[0.06em] text-white uppercase drop-shadow-[0_0_12px_rgba(0,225,255,0.85)] pr-2">SELECT LEVEL</h2>
+        </div>
+      </div>
+
+      <!-- 2 Level Cards -->
+      <div id="levelCardsWrap" class="relative z-10 flex items-stretch justify-center space-x-10 mt-12 px-10">
+        <!-- Cards injected by JS -->
+      </div>
+
+      <!-- Level Hint Text -->
+      <p id="levelHint" class="relative z-10 font-rajdhani font-semibold text-[26px] text-cyan-100/85 mt-8 text-center px-20 tracking-wide">
+        Sequence of 4 urban scenes • 20s to recreate • 100 pts per hit
+      </p>
+
+      <!-- Prize Target Line -->
+      <div id="winTargetLine" class="relative z-10 flex items-center space-x-3 mt-4 px-8 py-3 rounded-2xl"
+           style="background: rgba(60,38,4,0.7); border: 2px solid rgba(255,190,0,0.75); box-shadow: 0 0 20px rgba(255,170,0,0.5);">
+        <svg class="w-8 h-8 drop-shadow-[0_0_10px_rgba(255,190,0,0.9)]" viewBox="0 0 24 24" fill="#FFBB00">
+          <path d="M12 2l2.9 6.26 6.6.56-5 4.36 1.5 6.45L12 16.3 5.99 19.63l1.5-6.45-5-4.36 6.6-.56L12 2z"/>
+        </svg>
+        <span class="font-orbitron font-bold text-[20px] tracking-[0.14em] text-[#FFD873] uppercase">PRIZE TARGET: 1,000 PTS WITHIN 120s</span>
+      </div>
+
+      <!-- Action Buttons Row: START and HOME -->
+      <div class="relative z-10 mt-6 flex items-center space-x-6">
+        <button id="btnLevelStart" class="w-[360px] h-[92px] flex items-center justify-center cursor-pointer transition-transform active:scale-95 hover:brightness-110">
+          <div class="hex-tab-fill absolute inset-0"></div>
+          <svg class="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 360 92" preserveAspectRatio="none" style="filter: drop-shadow(0 0 18px rgba(0, 220, 255, 0.95));">
+            <polygon points="28,1.5 332,1.5 358.5,46 332,90.5 28,90.5 1.5,46" fill="none" stroke="#00E5FF" stroke-width="3.2" vector-effect="non-scaling-stroke" />
+          </svg>
+          <span class="relative z-10 font-orbitron font-black italic text-[36px] tracking-[0.16em] text-white uppercase drop-shadow-[0_0_12px_rgba(255,255,255,0.65)] pr-2">START</span>
+        </button>
+
+        <button id="btnLevelSelectHome" class="w-[190px] h-[92px] rounded-2xl bg-slate-900/85 border-2 border-cyan-400/50 flex items-center justify-center space-x-3 text-cyan-300 hover:text-white hover:border-cyan-300 active:scale-95 transition cursor-pointer shadow-[0_0_16px_rgba(0,225,255,0.3)]">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+          </svg>
+          <span class="font-orbitron font-bold text-[22px] tracking-wider">HOME</span>
+        </button>
+      </div>
+
+      <!-- Bottom HUD: TIME & SCORE -->
+      <div class="relative z-10 mt-auto mb-16 w-full px-14 flex justify-between items-center pointer-events-none">
+        <div class="hud-pill w-[300px] h-[70px] px-7 flex items-center justify-between" style="transform: skewX(-14deg);">
+          <span class="font-orbitron font-bold text-[19px] text-cyan-200/90 uppercase tracking-[0.16em]" style="transform: skewX(14deg);">TIME</span>
+          <span class="font-orbitron font-black italic text-[36px] text-white tracking-wider drop-shadow-[0_0_12px_rgba(0,225,255,0.8)]" style="transform: skewX(14deg);">00</span>
+        </div>
+        <div class="hud-pill w-[300px] h-[70px] px-7 flex items-center justify-between" style="transform: skewX(-14deg);">
+          <span class="font-orbitron font-bold text-[19px] text-cyan-200/90 uppercase tracking-[0.16em]" style="transform: skewX(14deg);">SCORE</span>
+          <span id="selectHudScore" class="font-orbitron font-black italic text-[36px] text-white tracking-wider drop-shadow-[0_0_12px_rgba(0,225,255,0.8)]" style="transform: skewX(14deg);">0</span>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ==================== SCREEN 3: MEMORIZE THE SEQUENCE ==================== -->
+    <section id="screenMemorize" class="hidden absolute inset-0 w-[1080px] h-[1920px] flex flex-col items-center overflow-hidden z-20">
+
+      <!-- Backdrop -->
+      <div class="absolute inset-0 z-0 pointer-events-none">
+        <img src="gameplay-fast-bg.jpg" alt="" class="w-full h-full object-cover object-center blur-[6px] brightness-[0.42] scale-105" />
+        <div class="absolute inset-0 bg-[#020a1c]/55"></div>
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(0,140,255,0.16)_0%,_rgba(2,7,20,0.85)_78%)]"></div>
+      </div>
+
+      <!-- Title Tab -->
+      <div class="relative z-10 flex flex-col items-center pt-[170px]">
+        <div class="relative w-[760px] h-[92px] flex items-center justify-center">
+          <div class="hex-tab-fill absolute inset-0"></div>
+          <svg class="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 760 92" preserveAspectRatio="none" style="filter: drop-shadow(0 0 14px rgba(0, 210, 255, 0.95));">
+            <polygon points="28,1.5 732,1.5 758.5,46 732,90.5 28,90.5 1.5,46" fill="none" stroke="#00D8FF" stroke-width="3" vector-effect="non-scaling-stroke" />
+          </svg>
+          <h2 class="relative z-10 font-orbitron font-black italic text-[36px] tracking-[0.08em] text-white uppercase drop-shadow-[0_0_12px_rgba(0,225,255,0.85)] pr-2">MEMORIZE THE SEQUENCE</h2>
+        </div>
+        <p class="font-rajdhani font-semibold text-[26px] text-cyan-100/85 mt-5 tracking-wide">Watch the city scenes light up — remember their order</p>
+      </div>
+
+      <!-- Grid Header Row: LEVEL badge + Countdown -->
+      <div class="relative z-10 w-[980px] flex justify-between items-center mt-10 px-2">
+        <div class="hud-pill w-[240px] h-[64px] px-6 flex items-center justify-between" style="transform: skewX(-14deg);">
+          <span class="font-orbitron font-bold text-[17px] text-cyan-200/90 uppercase tracking-[0.16em]" style="transform: skewX(14deg);">LEVEL</span>
+          <span id="memLevelNum" class="font-orbitron font-black italic text-[32px] text-white" style="transform: skewX(14deg);">1</span>
+        </div>
+
+        <!-- Circular Countdown -->
+        <div class="relative w-[96px] h-[96px]">
+          <svg class="w-full h-full -rotate-90" viewBox="0 0 96 96">
+            <circle cx="48" cy="48" r="40" fill="rgba(3,18,45,0.85)" stroke="rgba(0,210,255,0.25)" stroke-width="6" />
+            <circle id="memRing" class="countdown-ring" cx="48" cy="48" r="40" fill="none" stroke="#00E5FF" stroke-width="6" stroke-linecap="round"
+                    stroke-dasharray="251.2" stroke-dashoffset="0" style="filter: drop-shadow(0 0 8px rgba(0,229,255,0.9));" />
+          </svg>
+          <div class="absolute inset-0 flex items-center justify-center">
+            <span id="memCountdown" class="font-orbitron font-black text-[34px] text-white drop-shadow-[0_0_10px_rgba(0,225,255,0.9)]">00</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4x2 Memory Grid -->
+      <div id="memorizeGrid" class="relative z-10 grid grid-cols-4 gap-5 mt-8"></div>
+
+      <!-- Bottom Progress Dots -->
+      <div id="memorizeDots" class="relative z-10 flex items-center justify-center space-x-4 mt-12"></div>
+    </section>
+
+
+    <!-- ==================== SCREEN 4: RECREATE THE SEQUENCE ==================== -->
+    <section id="screenRecreate" class="hidden absolute inset-0 w-[1080px] h-[1920px] flex flex-col items-center overflow-hidden z-20">
+
+      <!-- Backdrop -->
+      <div class="absolute inset-0 z-0 pointer-events-none">
+        <img src="gameplay-bg.jpg" alt="" class="w-full h-full object-cover object-center blur-[6px] brightness-[0.42] scale-105" />
+        <div class="absolute inset-0 bg-[#020a1c]/55"></div>
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(0,140,255,0.16)_0%,_rgba(2,7,20,0.85)_78%)]"></div>
+      </div>
+
+      <!-- Title Tab -->
+      <div class="relative z-10 flex flex-col items-center pt-[170px]">
+        <div class="relative w-[700px] h-[92px] flex items-center justify-center">
+          <div class="hex-tab-fill absolute inset-0"></div>
+          <svg class="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 700 92" preserveAspectRatio="none" style="filter: drop-shadow(0 0 14px rgba(0, 210, 255, 0.95));">
+            <polygon points="28,1.5 672,1.5 698.5,46 672,90.5 28,90.5 1.5,46" fill="none" stroke="#00D8FF" stroke-width="3" vector-effect="non-scaling-stroke" />
+          </svg>
+          <h2 class="relative z-10 font-orbitron font-black italic text-[36px] tracking-[0.06em] text-white uppercase drop-shadow-[0_0_12px_rgba(0,225,255,0.85)] pr-2">RECREATE THE SEQUENCE</h2>
+        </div>
+        <p class="font-rajdhani font-semibold text-[26px] text-cyan-100/85 mt-5 tracking-wide px-16 text-center">Tap the images in the same order you saw them</p>
+      </div>
+
+      <!-- HUD Row: Score + Strikes + Countdown -->
+      <div class="relative z-10 w-[980px] flex justify-between items-center mt-8 px-2">
+        <div class="hud-pill w-[250px] h-[64px] px-6 flex items-center justify-between" style="transform: skewX(-14deg);">
+          <span class="font-orbitron font-bold text-[17px] text-cyan-200/90 uppercase tracking-[0.16em]" style="transform: skewX(14deg);">SCORE</span>
+          <span id="recHudScore" class="font-orbitron font-black italic text-[30px] text-white" style="transform: skewX(14deg);">0</span>
+        </div>
+
+        <!-- Strikes -->
+        <div id="strikeRow" class="flex items-center space-x-3"></div>
+
+        <!-- Circular Countdown -->
+        <div class="relative w-[96px] h-[96px]">
+          <svg class="w-full h-full -rotate-90" viewBox="0 0 96 96">
+            <circle cx="48" cy="48" r="40" fill="rgba(3,18,45,0.85)" stroke="rgba(0,210,255,0.25)" stroke-width="6" />
+            <circle id="recRing" class="countdown-ring" cx="48" cy="48" r="40" fill="none" stroke="#00E5FF" stroke-width="6" stroke-linecap="round"
+                    stroke-dasharray="251.2" stroke-dashoffset="0" style="filter: drop-shadow(0 0 8px rgba(0,229,255,0.9));" />
+          </svg>
+          <div class="absolute inset-0 flex items-center justify-center">
+            <span id="recCountdown" class="font-orbitron font-black text-[34px] text-white drop-shadow-[0_0_10px_rgba(0,225,255,0.9)]">00</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Progress Slots -->
+      <div id="recreateSlots" class="relative z-10 flex items-center justify-center space-x-3 mt-8"></div>
+
+      <!-- 4x2 Memory Grid -->
+      <div id="recreateGrid" class="relative z-10 grid grid-cols-4 gap-5 mt-8"></div>
+
+      <!-- Timer Bar -->
+      <div class="relative z-10 mt-auto mb-16 w-[900px]">
+        <div class="font-orbitron text-[14px] tracking-[0.3em] text-cyan-300/80 uppercase text-center mb-3">QUICK! THE CITY WON'T WAIT</div>
+        <div class="w-full h-[16px] rounded-full bg-[#03122d]/90 border border-cyan-400/40 overflow-hidden shadow-[inset_0_0_10px_rgba(0,185,255,0.25)]">
+          <div id="recTimeBar" class="h-full rounded-full bg-gradient-to-r from-neonBlue via-neonCyan to-white transition-[width] duration-100 ease-linear" style="width:100%; box-shadow: 0 0 16px rgba(0,229,255,0.9);"></div>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ==================== SCREEN: REGISTER (NAME + PHONE) ==================== -->
+    <section id="screenRegister" class="hidden absolute inset-0 w-[1080px] h-[1920px] flex flex-col items-center overflow-hidden z-20">
+
+      <!-- Backdrop -->
+      <div class="absolute inset-0 z-0 pointer-events-none">
+        <img src="gameplay-bg.jpg" alt="" class="w-full h-full object-cover object-center blur-[8px] brightness-[0.42] scale-105" />
+        <div class="absolute inset-0 bg-[#020a1c]/60"></div>
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(0,140,255,0.16)_0%,_rgba(2,7,20,0.88)_78%)]"></div>
+      </div>
+
+      <!-- Title Tab & Yamaha Branding -->
+      <div class="relative z-10 flex flex-col items-center pt-[130px]">
+        <div class="flex items-center space-x-4 mb-4">
+          <img src="Yamaha Logo for Dark Background.png" alt="Yamaha" class="h-[60px] w-auto object-contain drop-shadow-[0_0_20px_rgba(230,0,18,0.55)]" />
+          <div class="h-7 w-[2px] bg-cyan-400/40"></div>
+          <span class="font-orbitron font-bold text-[18px] tracking-[0.2em] text-cyan-300/85 uppercase">URBAN RIDERS</span>
+        </div>
+
+        <div class="relative w-[540px] h-[88px] flex items-center justify-center">
+          <div class="hex-tab-fill absolute inset-0"></div>
+          <svg class="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 540 88" preserveAspectRatio="none" style="filter: drop-shadow(0 0 14px rgba(0, 210, 255, 0.95));">
+            <polygon points="28,1.5 512,1.5 538.5,44 512,86.5 28,86.5 1.5,44" fill="none" stroke="#00D8FF" stroke-width="3" vector-effect="non-scaling-stroke" />
+          </svg>
+          <h2 class="relative z-10 font-orbitron font-black italic text-[38px] tracking-[0.08em] text-white uppercase drop-shadow-[0_0_12px_rgba(0,225,255,0.85)] pr-2">REGISTER</h2>
+        </div>
+        <p class="font-rajdhani font-semibold text-[25px] text-cyan-100/85 mt-5 tracking-wide">Enter your details to join the urban rush</p>
+      </div>
+
+      <!-- Input Fields -->
+      <div class="relative z-10 mt-12 flex flex-col space-y-8 w-[720px]">
+        <div id="regNameBox" class="reg-field active h-[110px] px-8 flex items-center justify-between">
+          <span class="font-orbitron font-bold text-[19px] tracking-[0.2em] text-cyan-300/85 uppercase">NAME</span>
+          <span id="regNameVal" class="font-orbitron font-black italic text-[42px] tracking-[0.12em] text-white uppercase drop-shadow-[0_0_14px_rgba(0,225,255,0.9)]">&nbsp;</span>
+        </div>
+        <div id="regPhoneBox" class="reg-field h-[110px] px-8 flex items-center justify-between">
+          <span class="font-orbitron font-bold text-[19px] tracking-[0.2em] text-cyan-300/85 uppercase">PHONE</span>
+          <span id="regPhoneVal" class="font-orbitron font-black italic text-[42px] tracking-[0.12em] text-white uppercase drop-shadow-[0_0_14px_rgba(0,225,255,0.9)]">&nbsp;</span>
+        </div>
+      </div>
+
+      <!-- Virtual Keyboard -->
+      <div class="relative z-10 mt-10 flex flex-col items-center space-y-4">
+        <div class="grid grid-rows-4 gap-4">
+          <div id="regKbRow1" class="flex justify-center space-x-2.5"></div>
+          <div id="regKbRow2" class="flex justify-center space-x-2.5"></div>
+          <div id="regKbRow3" class="flex justify-center space-x-2.5"></div>
+          <div id="regKbRow4" class="flex justify-center space-x-2.5"></div>
+        </div>
+        <div class="flex items-center space-x-4 mt-2">
+          <button id="regKbSpace" class="vk-key w-[240px] h-[76px] rounded-xl font-orbitron font-bold text-[22px] tracking-[0.2em] flex items-center justify-center">SPACE</button>
+          <button id="regKbDel" class="vk-key w-[140px] h-[76px] rounded-xl font-orbitron font-bold text-[22px] flex items-center justify-center">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 19l7-7-7-7m-7 7h9M5 5l14 14" />
+            </svg>
+          </button>
+          <button id="btnRegister" class="gold-btn w-[300px] h-[76px] rounded-xl font-orbitron font-black italic text-[28px] tracking-[0.1em] text-white flex items-center justify-center pr-2">REGISTER ▶</button>
+        </div>
+        <div class="flex items-center space-x-6 mt-3">
+          <button id="btnRegHome" class="px-8 py-3 rounded-full bg-slate-900/85 border border-cyan-400/40 text-cyan-300 font-orbitron font-bold text-[18px] tracking-[0.14em] hover:text-white hover:border-cyan-300 active:scale-95 transition flex items-center space-x-2 cursor-pointer shadow-[0_0_12px_rgba(0,225,255,0.25)]">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+            </svg>
+            <span>CANCEL / HOME</span>
+          </button>
+        </div>
+        <p id="regStatus" class="font-orbitron text-[17px] tracking-[0.22em] text-cyan-300/90 uppercase h-7"></p>
+      </div>
+    </section>
+
+
+    <!-- ==================== SCREEN: HOW TO PLAY ==================== -->
+    <section id="screenHowTo" class="hidden absolute inset-0 w-[1080px] h-[1920px] flex flex-col items-center overflow-hidden z-20">
+
+      <!-- Blurred Night City Backdrop -->
+      <div class="absolute inset-0 z-0 pointer-events-none">
+        <img src="hero-bg.jpg" alt="" class="w-full h-full object-cover object-center blur-[7px] brightness-[0.45] scale-105" />
+        <div class="absolute inset-0 bg-[#020a1c]/55"></div>
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(0,140,255,0.18)_0%,_rgba(2,7,20,0.82)_75%)]"></div>
+      </div>
+
+      <div class="relative z-10 flex flex-col items-center w-full pt-[170px]">
+
+        <!-- Yamaha Branding -->
+        <div class="flex items-center space-x-5 mb-6">
+          <img src="Yamaha Logo for Dark Background.png" alt="Yamaha" class="h-[58px] w-auto object-contain drop-shadow-[0_0_20px_rgba(230,0,18,0.55)]" />
+          <div class="h-7 w-[2px] bg-cyan-400/40"></div>
+          <span class="font-orbitron font-bold text-[18px] tracking-[0.2em] text-cyan-200/90 uppercase">MISSION BRIEFING</span>
+        </div>
+
+        <!-- Chamfered Neon-Cyan Card -->
+        <div class="relative w-[960px]">
+          <div class="chamfer-glass relative w-full pt-24 pb-20 px-10">
+            <div class="grid grid-cols-3 gap-6 items-start text-center">
+
+              <!-- Column 1: Memorize -->
+              <div class="flex flex-col items-center">
+                <div class="w-32 h-32 flex items-center justify-center">
+                  <svg class="w-28 h-28" viewBox="0 0 100 100" fill="none" style="filter: drop-shadow(0 0 14px rgba(0, 220, 255, 0.95));">
+                    <path d="M10 50 C 26 30, 40 30, 50 50 C 60 70, 74 70, 90 50" stroke="#FFFFFF" stroke-width="6" stroke-linecap="round" />
+                    <path d="M14 66 C 28 50, 40 50, 50 66 C 60 82, 72 82, 86 66" stroke="#00D8FF" stroke-width="4" stroke-linecap="round" opacity="0.6" />
+                    <circle cx="50" cy="50" r="7" fill="#FFFFFF" />
+                  </svg>
+                </div>
+                <p class="font-montserrat font-semibold text-[25px] leading-[1.35] text-white/95 mt-5">
+                  Watch the city<br />scenes light up<br />in order
+                </p>
+              </div>
+
+              <!-- Column 2: Recreate -->
+              <div class="flex flex-col items-center">
+                <div class="w-32 h-32 flex items-center justify-center">
+                  <svg class="w-32 h-32" viewBox="0 0 120 120" fill="none">
+                    <circle cx="60" cy="48" r="34" stroke="#00B8FF" stroke-width="2.5" opacity="0.5" />
+                    <circle cx="60" cy="48" r="24" stroke="#00E5FF" stroke-width="2.8" opacity="0.78" />
+                    <circle cx="60" cy="48" r="14" stroke="#7CEEFF" stroke-width="3" />
+                    <path d="M58 46V29a4.5 4.5 0 0 1 9 0v17l13.5 5.5c3.5 1.4 5.5 5.1 4.7 8.8l-3.6 16.2c-.9 4-4.4 6.8-8.5 6.8H56.5c-3.5 0-6.7-2-8.2-5.2l-8.4-18.3c-1.1-2.4-.1-5.2 2.2-6.4 2.1-1.1 4.6-.4 5.9 1.5l5 7.4V29z"
+                          fill="#FFFFFF" stroke="#04142E" stroke-width="2" stroke-linejoin="round"
+                          style="filter: drop-shadow(0 0 10px rgba(0, 229, 255, 0.85));" />
+                  </svg>
+                </div>
+                <p class="font-montserrat font-semibold text-[25px] leading-[1.35] text-white/95 mt-5">
+                  Tap the images<br />in the same<br />order you saw them
+                </p>
+              </div>
+
+              <!-- Column 3: Score -->
+              <div class="flex flex-col items-center">
+                <div class="w-32 h-32 flex items-center justify-center">
+                  <svg class="w-28 h-28" viewBox="0 0 100 100" fill="none" style="filter: drop-shadow(0 0 14px rgba(0, 220, 255, 0.9));">
+                    <rect x="42" y="10" width="16" height="6" rx="2" fill="#FFFFFF" />
+                    <line x1="50" y1="16" x2="50" y2="23" stroke="#FFFFFF" stroke-width="5" />
+                    <line x1="74" y1="27" x2="80" y2="21" stroke="#FFFFFF" stroke-width="5.5" stroke-linecap="round" />
+                    <circle cx="50" cy="56" r="32" stroke="#FFFFFF" stroke-width="6.5" />
+                    <circle cx="50" cy="56" r="24" stroke="#00D8FF" stroke-width="1.8" opacity="0.65" />
+                    <path d="M50 38 V56 L62 63" stroke="#FFFFFF" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
+                </div>
+                <p class="font-montserrat font-semibold text-[25px] leading-[1.35] text-white/95 mt-5">
+                  Beat the clock —<br />score on accuracy<br />&amp; speed
+                </p>
+              </div>
+
+            </div>
+          </div>
+
+          <svg class="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 960 470" preserveAspectRatio="none"
+               style="filter: drop-shadow(0 0 14px rgba(0, 200, 255, 0.95));">
+            <polygon points="34,1.5 926,1.5 958.5,34 958.5,436 926,468.5 34,468.5 1.5,436 1.5,34"
+                     fill="none" stroke="#00D4FF" stroke-width="3" vector-effect="non-scaling-stroke" />
+          </svg>
+
+          <!-- Top Tab: HOW TO PLAY -->
+          <div class="absolute -top-[40px] left-1/2 -translate-x-1/2 w-[460px] h-[80px] flex items-center justify-center">
+            <div class="hex-tab-fill absolute inset-0"></div>
+            <svg class="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 460 80" preserveAspectRatio="none"
+                 style="filter: drop-shadow(0 0 14px rgba(0, 210, 255, 0.95));">
+              <polygon points="28,1.5 432,1.5 458.5,40 432,78.5 28,78.5 1.5,40"
+                       fill="none" stroke="#00D8FF" stroke-width="3" vector-effect="non-scaling-stroke" />
+            </svg>
+            <h3 class="relative z-10 font-orbitron font-black italic text-[36px] tracking-[0.06em] text-white uppercase drop-shadow-[0_0_12px_rgba(0,225,255,0.8)] pr-2">
+              HOW TO PLAY
+            </h3>
+          </div>
+        </div>
+
+        <!-- Buttons Row: GOT IT! and HOME -->
+        <div class="flex items-center space-x-6 mt-14">
+          <button id="btnHowToStart" class="relative w-[360px] h-[92px] flex items-center justify-center cursor-pointer transition-transform active:scale-95 hover:brightness-110">
+            <div class="hex-tab-fill absolute inset-0"></div>
+            <svg class="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 360 92" preserveAspectRatio="none"
+                 style="filter: drop-shadow(0 0 18px rgba(0, 220, 255, 0.95));">
+              <polygon points="28,1.5 332,1.5 358.5,45 332,90.5 28,90.5 1.5,45"
+                       fill="none" stroke="#00E5FF" stroke-width="3.2" vector-effect="non-scaling-stroke" />
+            </svg>
+            <span class="relative z-10 font-orbitron font-black italic text-[36px] tracking-[0.14em] text-white uppercase drop-shadow-[0_0_12px_rgba(255,255,255,0.65)] pr-2">
+              GOT IT!
+            </span>
+          </button>
+
+          <button id="btnHowToHome" class="w-[190px] h-[92px] rounded-2xl bg-slate-900/85 border-2 border-cyan-400/50 flex items-center justify-center space-x-3 text-cyan-300 hover:text-white hover:border-cyan-300 active:scale-95 transition cursor-pointer shadow-[0_0_16px_rgba(0,225,255,0.3)]">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+            </svg>
+            <span class="font-orbitron font-bold text-[22px] tracking-wider">HOME</span>
+          </button>
+        </div>
+
+      </div>
+    </section>
+
+
+    <!-- ==================== SCREEN: PRIZE / RESULT QR ==================== -->
+    <section id="screenQR" class="hidden absolute inset-0 w-[1080px] h-[1920px] flex flex-col items-center overflow-hidden z-20">
+
+      <!-- Backdrop -->
+      <div class="absolute inset-0 z-0 pointer-events-none">
+        <img src="gameplay-fast-bg.jpg" alt="" class="w-full h-full object-cover object-center brightness-[0.7]" />
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_50%_42%,_rgba(2,18,48,0.45)_0%,_rgba(1,6,18,0.85)_82%)]"></div>
+      </div>
+
+      <div class="relative z-10 flex flex-col items-center w-full pt-[175px]">
+
+        <!-- Official Status Pill (Clears top header & avoids duplicate logo) -->
+        <div id="qrStatusPill" class="mb-4 px-6 py-1.5 rounded-full bg-cyan-950/70 border border-cyan-400/50 backdrop-blur-md shadow-[0_0_16px_rgba(0,225,255,0.35)] flex items-center justify-center">
+          <span id="qrBadgeLabel" class="font-orbitron font-bold text-[17px] tracking-[0.22em] text-cyan-200 uppercase">★ OFFICIAL WINNER ★</span>
+        </div>
+
+        <!-- Trophy / Status Icon + Title -->
+        <div class="relative flex items-center justify-center space-x-4 mb-2">
+          <div id="qrIconWrap">
+            <svg class="w-14 h-14 drop-shadow-[0_0_20px_rgba(255,190,0,0.9)]" viewBox="0 0 24 24" fill="url(#trophyGoldC)">
+              <defs>
+                <linearGradient id="trophyGoldC" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stop-color="#FFF2A6" />
+                  <stop offset="50%" stop-color="#FFBB00" />
+                  <stop offset="100%" stop-color="#C97A00" />
+                </linearGradient>
+              </defs>
+              <path d="M19 4h-2V3a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v1H5a3 3 0 0 0-3 3v2a5 5 0 0 0 4.54 4.97A6 6 0 0 0 11 16.92V19H8a1 1 0 0 0 0 2h8a1 1 0 0 0 0-2h-3v-2.08a6 6 0 0 0 4.46-3.95A5 5 0 0 0 22 9V7a3 3 0 0 0-3-3zM4 9V7a1 1 0 0 1 1-1h2v4.88A3 3 0 0 1 4 9zm16 0a3 3 0 0 1-3 1.88V6h2a1 1 0 0 1 1 1z"/>
+            </svg>
+          </div>
+          <h2 id="qrTitle" class="font-orbitron font-black italic text-[46px] tracking-[0.04em] text-white uppercase drop-shadow-[0_0_22px_rgba(0,225,255,0.95)] pr-2">
+            CONGRATULATIONS!
+          </h2>
+        </div>
+
+        <p id="qrSubline" class="font-montserrat font-bold italic text-[24px] text-white/95 mb-5 tracking-wide text-center px-16 drop-shadow-[0_2px_14px_rgba(0,220,255,0.6)]">
+          You conquered the rush! <span class="text-cyan-200 drop-shadow-[0_0_16px_rgba(0,229,255,0.95)]">Target points reached!</span>
+        </p>
+
+        <!-- Player & Score Summary Card -->
+        <div id="qrStatsCard" class="mb-6 px-7 py-2.5 rounded-2xl bg-[#031129]/90 border border-cyan-400/50 backdrop-blur-md shadow-[0_0_20px_rgba(0,225,255,0.3)] flex items-center justify-center space-x-7">
+          <div class="flex items-center space-x-2">
+            <span class="font-orbitron text-[14px] text-cyan-300/80 tracking-wider">RIDER:</span>
+            <span id="qrRiderName" class="font-orbitron font-bold text-[22px] text-white tracking-wide">RIDER</span>
+          </div>
+          <div class="h-5 w-[2px] bg-cyan-400/30"></div>
+          <div class="flex items-center space-x-2">
+            <span class="font-orbitron text-[14px] text-cyan-300/80 tracking-wider">SCORE:</span>
+            <span id="qrFinalScore" class="font-orbitron font-black text-[26px] text-cyan-200">0 PTS</span>
+          </div>
+          <div class="h-5 w-[2px] bg-cyan-400/30"></div>
+          <div class="flex items-center space-x-2">
+            <span class="font-orbitron text-[14px] text-cyan-300/80 tracking-wider">TARGET:</span>
+            <span id="qrTargetScore" class="font-orbitron font-bold text-[20px] text-white/90">1,200 PTS</span>
+          </div>
+        </div>
+
+        <!-- QR Box Card -->
+        <div id="qrBoxCard" class="relative mb-6 p-4 rounded-2xl bg-[#03132e]/85 border-2 border-cyan-400/60 shadow-[0_0_30px_rgba(0,220,255,0.4)] flex flex-col items-center">
+          <span class="font-orbitron font-bold text-[16px] tracking-[0.2em] text-cyan-300 uppercase mb-2.5 flex items-center space-x-2">
+            <svg class="w-5 h-5 text-cyan-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
+            <span>SCAN QR CODE</span>
+          </span>
+          <div class="qr-white flex items-center justify-center w-[246px] h-[246px] rounded-xl p-2.5 bg-white shadow-[0_0_20px_rgba(255,255,255,0.8)]">
+            <div id="qrBox" class="flex items-center justify-center"></div>
+          </div>
+        </div>
+
+        <!-- Facebook Follow Header -->
+        <div id="qrFbCard" class="relative mb-8 px-8 py-3 rounded-2xl bg-[#020d24]/90 border border-cyan-400/40 flex items-center justify-center space-x-3.5 shadow-[0_0_20px_rgba(0,200,255,0.25)]">
+          <svg class="w-7 h-7 text-[#1877F2] fill-current" viewBox="0 0 24 24">
+            <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+          </svg>
+          <h3 class="font-orbitron font-bold text-[19px] tracking-[0.14em] text-white uppercase drop-shadow-[0_0_10px_rgba(0,225,255,0.7)]">
+            FOLLOW OUR OFFICIAL FACEBOOK PAGE
+          </h3>
+        </div>
+
+        <!-- Action Buttons: PLAY AGAIN / TRY AGAIN, SCOREBOARD, HOME -->
+        <div class="flex items-center justify-center space-x-5">
+          <button id="btnQrPlayAgain" class="gold-btn w-[260px] h-[74px] rounded-full flex items-center justify-center space-x-3 cursor-pointer transition-transform active:scale-95 shadow-[0_0_20px_rgba(255,180,0,0.6)]">
+            <span id="btnQrPlayAgainLabel" class="font-orbitron font-black italic text-[22px] tracking-[0.08em] text-white uppercase pr-1">PLAY AGAIN</span>
+            <svg class="w-5 h-5 fill-white" viewBox="0 0 24 24"><polygon points="5,3 21,12 5,21"/></svg>
+          </button>
+
+          <button id="btnQrLeaderboard" class="w-[240px] h-[74px] rounded-2xl bg-slate-900/85 border-2 border-cyan-400/50 flex items-center justify-center space-x-3 text-cyan-300 hover:text-white hover:border-cyan-300 active:scale-95 transition cursor-pointer shadow-[0_0_16px_rgba(0,225,255,0.3)]">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/></svg>
+            <span class="font-orbitron font-bold text-[20px] tracking-wider">SCOREBOARD</span>
+          </button>
+
+          <button id="btnQrHome" class="w-[160px] h-[74px] rounded-2xl bg-slate-900/85 border-2 border-cyan-400/50 flex items-center justify-center space-x-2 text-cyan-300 hover:text-white hover:border-cyan-300 active:scale-95 transition cursor-pointer shadow-[0_0_16px_rgba(0,225,255,0.3)]">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+            </svg>
+            <span class="font-orbitron font-bold text-[20px] tracking-wider">HOME</span>
+          </button>
+        </div>
+
+      </div>
+    </section>
+
+
+    <!-- ==================== SCREEN 5: LEVEL COMPLETE / GAME OVER ==================== -->
+    <section id="screenComplete" class="hidden absolute inset-0 w-[1080px] h-[1920px] flex flex-col justify-between items-center z-20 overflow-hidden">
+
+      <!-- Backdrop -->
+      <div class="absolute inset-0 z-0 pointer-events-none">
+        <img src="gameplay-fast-bg.jpg" alt="" class="w-full h-full object-cover object-center brightness-[0.75]" />
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_50%_45%,_rgba(2,18,48,0.5)_0%,_rgba(1,6,18,0.85)_82%)]"></div>
+      </div>
+
+      <!-- Center Content -->
+      <div class="relative z-10 w-full flex flex-col items-center text-center my-auto px-10">
+
+        <!-- Yamaha Official Branding -->
+        <div class="flex flex-col items-center mb-4">
+          <img src="Yamaha Logo for Dark Background.png" alt="Yamaha" class="h-[66px] w-auto object-contain drop-shadow-[0_0_24px_rgba(230,0,18,0.6)]" />
+          <span class="font-orbitron font-bold tracking-[0.3em] text-[15px] text-cyan-300/80 mt-1 uppercase">OFFICIAL RIDER CHALLENGE</span>
+        </div>
+
+        <!-- Trophy + Title -->
+        <div class="relative flex items-center justify-center space-x-5 mb-8">
+          <svg class="w-16 h-16 drop-shadow-[0_0_20px_rgba(255,190,0,0.9)]" viewBox="0 0 24 24" fill="url(#trophyGoldA)">
+            <defs>
+              <linearGradient id="trophyGoldA" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color="#FFF2A6" />
+                <stop offset="50%" stop-color="#FFBB00" />
+                <stop offset="100%" stop-color="#C97A00" />
+              </linearGradient>
+            </defs>
+            <path d="M19 4h-2V3a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v1H5a3 3 0 0 0-3 3v2a5 5 0 0 0 4.54 4.97A6 6 0 0 0 11 16.92V19H8a1 1 0 0 0 0 2h8a1 1 0 0 0 0-2h-3v-2.08a6 6 0 0 0 4.46-3.95A5 5 0 0 0 22 9V7a3 3 0 0 0-3-3zM4 9V7a1 1 0 0 1 1-1h2v4.88A3 3 0 0 1 4 9zm16 0a3 3 0 0 1-3 1.88V6h2a1 1 0 0 1 1 1z"/>
+          </svg>
+          <h2 id="completeTitle" class="font-orbitron font-black italic text-[58px] tracking-[0.04em] text-white uppercase drop-shadow-[0_0_22px_rgba(0,225,255,0.9)] pr-2">
+            LEVEL COMPLETE!
+          </h2>
+        </div>
+
+        <!-- Score Panel -->
+        <div class="relative w-[920px] h-[470px] flex flex-col items-center justify-center">
+          <div class="chamfer-glass absolute inset-0"></div>
+          <svg class="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 920 470" preserveAspectRatio="none" style="filter: drop-shadow(0 0 16px rgba(0, 205, 255, 0.92));">
+            <polygon points="34,1.5 886,1.5 918.5,34 918.5,436 886,468.5 34,468.5 1.5,436 1.5,34" fill="none" stroke="#00D4FF" stroke-width="3" vector-effect="non-scaling-stroke" />
+          </svg>
+
+          <div class="absolute top-[6px] left-1/2 -translate-x-1/2 w-[260px] h-[10px] rounded-full bg-cyan-200/80 blur-[10px] pointer-events-none"></div>
+          <div class="absolute bottom-[10px] left-1/2 -translate-x-1/2 w-[300px] h-[12px] rounded-full bg-cyan-300/70 blur-[12px] pointer-events-none"></div>
+
+          <div class="relative z-10 flex flex-col items-center pt-2">
+            <span class="font-orbitron font-bold italic text-[30px] tracking-[0.14em] text-cyan-100 uppercase drop-shadow-[0_0_12px_rgba(0,225,255,0.7)] mb-1 pr-2">SCORE</span>
+            <div id="finalScoreVal" class="font-orbitron font-black italic text-[132px] leading-none text-white tracking-tight drop-shadow-[0_0_32px_rgba(0,225,255,0.9)] pr-4">0</div>
+
+            <!-- Time Bonus & Accuracy Row -->
+            <div class="flex items-center justify-center space-x-10 mt-8">
+              <div class="flex items-center space-x-4">
+                <svg class="w-10 h-10 text-cyan-200 drop-shadow-[0_0_8px_rgba(0,225,255,0.85)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <circle cx="12" cy="13" r="8" stroke-width="2.2" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 9v4l2.5 2M9 2h6M12 2v3" />
+                </svg>
+                <div class="flex flex-col items-start">
+                  <span class="font-orbitron text-[15px] tracking-[0.2em] text-cyan-300/85 uppercase">TIME BONUS</span>
+                  <span id="timeBonusVal" class="font-orbitron font-black italic text-[34px] text-white drop-shadow-[0_0_12px_rgba(0,225,255,0.85)]">+0</span>
+                </div>
+              </div>
+
+              <div class="flex items-center space-x-4">
+                <svg class="w-10 h-10 text-cyan-200 drop-shadow-[0_0_8px_rgba(0,225,255,0.85)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <circle cx="12" cy="12" r="9" stroke-width="2.2" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M8 12.5l2.5 2.5L16 9.5" />
+                </svg>
+                <div class="flex flex-col items-start">
+                  <span class="font-orbitron text-[15px] tracking-[0.2em] text-cyan-300/85 uppercase">ACCURACY</span>
+                  <span id="accuracyVal" class="font-orbitron font-black italic text-[34px] text-white drop-shadow-[0_0_12px_rgba(0,225,255,0.85)]">0%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex items-center justify-center space-x-6 mt-10">
+          <!-- Primary: NEXT LEVEL / SAVE SCORE / PLAY AGAIN -->
+          <button id="btnCompletePrimary" class="gold-btn w-[350px] h-[88px] flex items-center justify-center space-x-3 rounded-full cursor-pointer transition-transform active:scale-95">
+            <span id="btnCompletePrimaryLabel" class="font-orbitron font-black italic text-[26px] tracking-[0.1em] text-white uppercase drop-shadow-[0_0_12px_rgba(255,200,80,0.9)] pr-2">NEXT LEVEL</span>
+            <svg class="w-7 h-7 fill-white drop-shadow-[0_0_10px_rgba(255,200,80,0.9)]" viewBox="0 0 24 24"><polygon points="5,3 21,12 5,21" /></svg>
+          </button>
+
+          <!-- Secondary: VIEW SCOREBOARD -->
+          <button id="btnCompleteViewBoard" class="relative w-[360px] h-[88px] flex items-center justify-center space-x-3 cursor-pointer transition-transform active:scale-95 hover:brightness-110">
+            <div class="hex-tab-fill absolute inset-0"></div>
+            <svg class="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 360 88" preserveAspectRatio="none" style="filter: drop-shadow(0 0 14px rgba(0, 215, 255, 0.9));">
+              <polygon points="28,1.5 332,1.5 358.5,44 332,86.5 28,86.5 1.5,44" fill="none" stroke="#00D8FF" stroke-width="3" vector-effect="non-scaling-stroke" />
+            </svg>
+            <svg class="relative z-10 w-7 h-7 text-cyan-200 drop-shadow-[0_0_8px_rgba(0,225,255,0.85)]" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/>
+            </svg>
+            <span class="relative z-10 font-orbitron font-bold italic text-[24px] tracking-wider text-white uppercase">SCOREBOARD</span>
+          </button>
+
+          <!-- Home Button -->
+          <button id="btnCompleteHome" class="w-[180px] h-[88px] rounded-full bg-slate-900/85 border-2 border-cyan-400/50 flex items-center justify-center space-x-2 text-cyan-300 hover:text-white hover:border-cyan-300 active:scale-95 transition cursor-pointer shadow-[0_0_16px_rgba(0,225,255,0.3)]">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+            </svg>
+            <span class="font-orbitron font-bold text-[22px] tracking-wider">HOME</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="h-20"></div>
+    </section>
+
+
+    <!-- ==================== SCREEN 6: ENTER YOUR NAME ==================== -->
+    <section id="screenNameEntry" class="hidden absolute inset-0 w-[1080px] h-[1920px] flex flex-col items-center overflow-hidden z-20">
+
+      <!-- Backdrop -->
+      <div class="absolute inset-0 z-0 pointer-events-none">
+        <img src="gameplay-bg.jpg" alt="" class="w-full h-full object-cover object-center blur-[8px] brightness-[0.42] scale-105" />
+        <div class="absolute inset-0 bg-[#020a1c]/60"></div>
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(0,140,255,0.16)_0%,_rgba(2,7,20,0.88)_78%)]"></div>
+      </div>
+
+      <!-- Title Tab & Yamaha Branding -->
+      <div class="relative z-10 flex flex-col items-center pt-[150px]">
+        <div class="flex items-center space-x-4 mb-4">
+          <img src="Yamaha Logo for Dark Background.png" alt="Yamaha" class="h-[60px] w-auto object-contain drop-shadow-[0_0_20px_rgba(230,0,18,0.55)]" />
+          <div class="h-7 w-[2px] bg-cyan-400/40"></div>
+          <span class="font-orbitron font-bold text-[18px] tracking-[0.2em] text-cyan-300/85 uppercase">YAMAHA HALL OF FAME</span>
+        </div>
+
+        <div class="relative w-[560px] h-[88px] flex items-center justify-center">
+          <div class="hex-tab-fill absolute inset-0"></div>
+          <svg class="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 560 88" preserveAspectRatio="none" style="filter: drop-shadow(0 0 14px rgba(0, 210, 255, 0.95));">
+            <polygon points="28,1.5 532,1.5 558.5,44 532,86.5 28,86.5 1.5,44" fill="none" stroke="#00D8FF" stroke-width="3" vector-effect="non-scaling-stroke" />
+          </svg>
+          <h2 class="relative z-10 font-orbitron font-black italic text-[36px] tracking-[0.08em] text-white uppercase drop-shadow-[0_0_12px_rgba(0,225,255,0.85)] pr-2">ENTER YOUR NAME</h2>
+        </div>
+        <p class="font-rajdhani font-semibold text-[25px] text-cyan-100/85 mt-5 tracking-wide">Claim your spot on the urban scoreboard</p>
+      </div>
+
+      <!-- Name Display -->
+      <div class="relative z-10 mt-12 w-[720px] h-[110px] rounded-2xl bg-[#03122d]/90 border-2 border-[#00D2FF] flex items-center justify-center"
+           style="box-shadow: 0 0 26px rgba(0,200,255,0.7), inset 0 0 16px rgba(0,185,255,0.25);">
+        <span id="nameDisplay" class="font-orbitron font-black italic text-[48px] tracking-[0.14em] text-white uppercase drop-shadow-[0_0_16px_rgba(0,225,255,0.9)]">PLAYER</span>
+        <span class="absolute right-8 font-orbitron font-black text-[40px] text-cyan-300 animate-blink">|</span>
+      </div>
+
+      <!-- Virtual Keyboard -->
+      <div class="relative z-10 mt-12 flex flex-col items-center space-y-4">
+        <div class="grid grid-rows-3 gap-4">
+          <div id="kbRow1" class="flex justify-center space-x-2.5"></div>
+          <div id="kbRow2" class="flex justify-center space-x-2.5"></div>
+          <div id="kbRow3" class="flex justify-center space-x-2.5"></div>
+        </div>
+
+        <div class="flex items-center space-x-4 mt-2">
+          <button id="kbSpace" class="vk-key w-[240px] h-[76px] rounded-xl font-orbitron font-bold text-[22px] tracking-[0.2em] flex items-center justify-center">SPACE</button>
+          <button id="kbDel" class="vk-key w-[140px] h-[76px] rounded-xl font-orbitron font-bold text-[22px] flex items-center justify-center">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 19l7-7-7-7m-7 7h9M5 5l14 14" />
+            </svg>
+          </button>
+          <button id="kbOk" class="hero-play-btn w-[260px] h-[76px] rounded-xl font-orbitron font-black italic text-[28px] tracking-[0.14em] text-white flex items-center justify-center pr-2">OK ▶</button>
+        </div>
+        <div class="flex items-center space-x-6 mt-3">
+          <button id="btnNameEntryHome" class="px-8 py-3 rounded-full bg-slate-900/85 border border-cyan-400/40 text-cyan-300 font-orbitron font-bold text-[18px] tracking-[0.14em] hover:text-white hover:border-cyan-300 active:scale-95 transition flex items-center space-x-2 cursor-pointer shadow-[0_0_12px_rgba(0,225,255,0.25)]">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+            </svg>
+            <span>CANCEL / HOME</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ==================== SCREEN 7: LEADERBOARD ==================== -->
+    <section id="screenLeaderboard" class="hidden absolute inset-0 w-[1080px] h-[1920px] flex flex-col justify-center items-center px-12 z-20 overflow-hidden">
+
+      <!-- Backdrop -->
+      <div class="absolute inset-0 z-0 pointer-events-none">
+        <img src="gameplay-fast-bg.jpg" alt="" class="w-full h-full object-cover object-center brightness-[0.75]" />
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,_rgba(2,18,48,0.5)_0%,_rgba(1,6,18,0.85)_82%)]"></div>
+      </div>
+
+      <div class="relative z-10 flex flex-col items-center w-full">
+
+        <!-- Yamaha Official Branding -->
+        <div class="flex items-center space-x-4 mb-4">
+          <img src="Yamaha Logo for Dark Background.png" alt="Yamaha" class="h-[60px] w-auto object-contain drop-shadow-[0_0_22px_rgba(230,0,18,0.6)]" />
+          <div class="h-7 w-[2px] bg-cyan-400/40"></div>
+          <span class="font-orbitron font-bold text-[18px] tracking-[0.2em] text-cyan-200/90 uppercase">HALL OF SPEED &amp; MEMORY</span>
+        </div>
+
+        <!-- Trophy & LEADERBOARD Header -->
+        <div class="relative flex items-center justify-center space-x-5 mb-8">
+          <svg class="w-16 h-16 drop-shadow-[0_0_20px_rgba(255,190,0,0.9)]" viewBox="0 0 24 24" fill="url(#trophyGoldB)">
+            <defs>
+              <linearGradient id="trophyGoldB" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color="#FFF2A6" />
+                <stop offset="50%" stop-color="#FFBB00" />
+                <stop offset="100%" stop-color="#C97A00" />
+              </linearGradient>
+            </defs>
+            <path d="M19 4h-2V3a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v1H5a3 3 0 0 0-3 3v2a5 5 0 0 0 4.54 4.97A6 6 0 0 0 11 16.92V19H8a1 1 0 0 0 0 2h8a1 1 0 0 0 0-2h-3v-2.08a6 6 0 0 0 4.46-3.95A5 5 0 0 0 22 9V7a3 3 0 0 0-3-3zM4 9V7a1 1 0 0 1 1-1h2v4.88A3 3 0 0 1 4 9zm16 0a3 3 0 0 1-3 1.88V6h2a1 1 0 0 1 1 1z"/>
+          </svg>
+          <h2 class="font-orbitron font-black italic text-[54px] tracking-[0.06em] text-white uppercase drop-shadow-[0_0_20px_rgba(0,225,255,0.85)] pr-2">LEADERBOARD</h2>
+        </div>
+
+        <!-- Chamfered Neon-Cyan Leaderboard Panel -->
+        <div class="relative w-[920px]">
+          <div class="chamfer-glass relative w-full px-12 pt-10 pb-12">
+            <!-- Column Headers -->
+            <div class="w-full flex items-center px-6 pb-4 font-orbitron text-[20px] font-bold tracking-[0.14em] text-cyan-200/85">
+              <span class="w-32 text-center">RANK</span>
+              <span class="flex-1 text-left pl-8">NAME</span>
+              <span class="w-40 text-right pr-4">SCORE</span>
+            </div>
+
+            <!-- Top 5 Ranked Rows -->
+            <div id="leaderboardList" class="w-full flex flex-col space-y-3.5"></div>
+          </div>
+
+          <svg class="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 920 560" preserveAspectRatio="none" style="filter: drop-shadow(0 0 16px rgba(0, 205, 255, 0.92));">
+            <polygon points="34,1.5 886,1.5 918.5,34 918.5,526 886,558.5 34,558.5 1.5,526 1.5,34" fill="none" stroke="#00D4FF" stroke-width="3" vector-effect="non-scaling-stroke" />
+          </svg>
+
+          <div class="absolute -top-[4px] left-1/2 -translate-x-1/2 w-[240px] h-[10px] rounded-full bg-cyan-200/80 blur-[10px] pointer-events-none"></div>
+          <div class="absolute -bottom-[4px] left-1/2 -translate-x-1/2 w-[240px] h-[10px] rounded-full bg-cyan-300/80 blur-[10px] pointer-events-none"></div>
+        </div>
+
+        <!-- Home + Claim Prize Buttons -->
+        <div class="flex items-center justify-center space-x-8 mt-14">
+          <button id="btnLeaderboardHome" class="relative w-[360px] h-[88px] flex items-center justify-center space-x-4 cursor-pointer transition-transform active:scale-95 hover:brightness-110">
+            <div class="hex-tab-fill absolute inset-0"></div>
+            <svg class="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 360 88" preserveAspectRatio="none" style="filter: drop-shadow(0 0 14px rgba(0, 215, 255, 0.9));">
+              <polygon points="28,1.5 332,1.5 358.5,44 332,86.5 28,86.5 1.5,44" fill="none" stroke="#00D8FF" stroke-width="3" vector-effect="non-scaling-stroke" />
+            </svg>
+            <svg class="relative z-10 w-7 h-7 text-cyan-200 drop-shadow-[0_0_8px_rgba(0,225,255,0.85)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.4" d="M3 10.5L12 3l9 7.5V20a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1v-9.5z" />
+            </svg>
+            <span class="relative z-10 font-orbitron font-bold italic text-[28px] tracking-[0.12em] text-white uppercase drop-shadow-[0_0_10px_rgba(255,255,255,0.55)] pr-1">HOME</span>
+          </button>
+
+          <button id="btnLeaderboardClaimPrize" class="gold-btn w-[380px] h-[88px] rounded-full flex items-center justify-center space-x-4 cursor-pointer transition-transform active:scale-95">
+            <span class="font-orbitron font-black italic text-[28px] tracking-[0.08em] text-white uppercase drop-shadow-[0_0_12px_rgba(255,200,80,0.9)] pr-1">CLAIM PRIZE</span>
+            <svg class="w-8 h-8 fill-white drop-shadow-[0_0_10px_rgba(255,200,80,0.9)]" viewBox="0 0 24 24"><polygon points="5,3 21,12 5,21" /></svg>
+          </button>
+        </div>
+      </div>
+    </section>
+
+  </div> <!-- End #kioskContainer -->
+
+  <!-- ==================== OPERATOR SETTINGS OVERLAY ==================== -->
+  <div id="screenAdmin" class="hidden absolute inset-0 w-[1080px] h-[1920px] z-[70] flex items-center justify-center" style="background: rgba(1, 4, 10, 0.94); backdrop-filter: blur(16px);">
+    <div class="relative w-[760px]">
+      <div class="chamfer-glass relative w-full pt-20 pb-8 px-8">
+
+        <!-- Top Yamaha Branding inside Modal -->
+        <div class="flex items-center justify-center space-x-3 mb-5">
+          <img src="Yamaha Logo for Dark Background.png" alt="Yamaha" class="h-[42px] w-auto object-contain drop-shadow-[0_0_16px_rgba(230,0,18,0.55)]" />
+          <div class="h-5 w-[2px] bg-cyan-400/40"></div>
+          <span class="font-orbitron font-bold text-[15px] tracking-[0.22em] text-cyan-300/90 uppercase">GAMEPLAY &amp; PRIZE CONTROLLER</span>
+        </div>
+
+        <!-- Section 1: WIN TARGET POINTS -->
+        <div class="p-4 rounded-2xl bg-[#03132e]/70 border border-cyan-400/30 mb-4">
+          <div class="flex items-center justify-between mb-3">
+            <div>
+              <span class="font-orbitron font-bold text-[20px] tracking-[0.08em] text-cyan-200 uppercase">WIN TARGET POINTS</span>
+              <p class="font-rajdhani text-[15px] text-cyan-100/70">Points needed to unlock the prize voucher</p>
+            </div>
+            <div class="flex items-center space-x-2">
+              <button id="admTargetMinus500" class="vk-key px-2.5 h-[48px] rounded-xl font-orbitron font-bold text-[15px] flex items-center justify-center cursor-pointer hover:border-cyan-300">-500</button>
+              <button id="admTargetMinus" class="vk-key w-[48px] h-[48px] rounded-xl font-orbitron font-black text-[22px] flex items-center justify-center cursor-pointer hover:border-cyan-300">-100</button>
+              <span id="admTargetVal" class="font-orbitron font-black italic text-[28px] text-white w-[150px] text-center drop-shadow-[0_0_14px_rgba(0,225,255,0.9)]">1,500</span>
+              <button id="admTargetPlus" class="vk-key w-[48px] h-[48px] rounded-xl font-orbitron font-black text-[22px] flex items-center justify-center cursor-pointer hover:border-cyan-300">+100</button>
+              <button id="admTargetPlus500" class="vk-key px-2.5 h-[48px] rounded-xl font-orbitron font-bold text-[15px] flex items-center justify-center cursor-pointer hover:border-cyan-300">+500</button>
+            </div>
+          </div>
+          <!-- Presets -->
+          <div class="flex items-center space-x-2 pt-2 border-t border-cyan-400/20">
+            <span class="font-orbitron text-[12px] text-cyan-300/70 tracking-wider">PRESETS:</span>
+            <button class="adm-pts-preset px-3 py-1 rounded-lg bg-cyan-950/60 border border-cyan-400/40 text-cyan-200 font-orbitron text-[13px] hover:border-cyan-300 active:scale-95 cursor-pointer" data-val="500">500</button>
+            <button class="adm-pts-preset px-3 py-1 rounded-lg bg-cyan-950/60 border border-cyan-400/40 text-cyan-200 font-orbitron text-[13px] hover:border-cyan-300 active:scale-95 cursor-pointer" data-val="1000">1,000</button>
+            <button class="adm-pts-preset px-3 py-1 rounded-lg bg-cyan-950/60 border border-cyan-400/40 text-cyan-200 font-orbitron text-[13px] hover:border-cyan-300 active:scale-95 cursor-pointer" data-val="1500">1,500</button>
+            <button class="adm-pts-preset px-3 py-1 rounded-lg bg-cyan-950/60 border border-cyan-400/40 text-cyan-200 font-orbitron text-[13px] hover:border-cyan-300 active:scale-95 cursor-pointer" data-val="2000">2,000</button>
+            <button class="adm-pts-preset px-3 py-1 rounded-lg bg-cyan-950/60 border border-cyan-400/40 text-cyan-200 font-orbitron text-[13px] hover:border-cyan-300 active:scale-95 cursor-pointer" data-val="2500">2,500</button>
+            <button class="adm-pts-preset px-3 py-1 rounded-lg bg-cyan-950/60 border border-cyan-400/40 text-cyan-200 font-orbitron text-[13px] hover:border-cyan-300 active:scale-95 cursor-pointer" data-val="3000">3,000</button>
+          </div>
+        </div>
+
+        <!-- Section 2: OVERALL TIME LIMIT -->
+        <div class="p-4 rounded-2xl bg-[#03132e]/70 border border-cyan-400/30 mb-4">
+          <div class="flex items-center justify-between mb-3">
+            <div>
+              <span class="font-orbitron font-bold text-[20px] tracking-[0.08em] text-cyan-200 uppercase">TIME LIMIT (OVERALL)</span>
+              <p class="font-rajdhani text-[15px] text-cyan-100/70">Total session duration to reach target</p>
+            </div>
+            <div class="flex items-center space-x-2">
+              <button id="admTimeMinus30" class="vk-key px-2.5 h-[48px] rounded-xl font-orbitron font-bold text-[15px] flex items-center justify-center cursor-pointer hover:border-cyan-300">-30s</button>
+              <button id="admTimeMinus" class="vk-key w-[48px] h-[48px] rounded-xl font-orbitron font-black text-[22px] flex items-center justify-center cursor-pointer hover:border-cyan-300">-10s</button>
+              <span id="admTimeVal" class="font-orbitron font-black italic text-[28px] text-white w-[150px] text-center drop-shadow-[0_0_14px_rgba(0,225,255,0.9)]">180s</span>
+              <button id="admTimePlus" class="vk-key w-[48px] h-[48px] rounded-xl font-orbitron font-black text-[22px] flex items-center justify-center cursor-pointer hover:border-cyan-300">+10s</button>
+              <button id="admTimePlus30" class="vk-key px-2.5 h-[48px] rounded-xl font-orbitron font-bold text-[15px] flex items-center justify-center cursor-pointer hover:border-cyan-300">+30s</button>
+            </div>
+          </div>
+          <!-- Presets -->
+          <div class="flex items-center space-x-2 pt-2 border-t border-cyan-400/20">
+            <span class="font-orbitron text-[12px] text-cyan-300/70 tracking-wider">PRESETS:</span>
+            <button class="adm-time-preset px-3 py-1 rounded-lg bg-cyan-950/60 border border-cyan-400/40 text-cyan-200 font-orbitron text-[13px] hover:border-cyan-300 active:scale-95 cursor-pointer" data-val="60">60s</button>
+            <button class="adm-time-preset px-3 py-1 rounded-lg bg-cyan-950/60 border border-cyan-400/40 text-cyan-200 font-orbitron text-[13px] hover:border-cyan-300 active:scale-95 cursor-pointer" data-val="90">90s</button>
+            <button class="adm-time-preset px-3 py-1 rounded-lg bg-cyan-950/60 border border-cyan-400/40 text-cyan-200 font-orbitron text-[13px] hover:border-cyan-300 active:scale-95 cursor-pointer" data-val="120">120s</button>
+            <button class="adm-time-preset px-3 py-1 rounded-lg bg-cyan-950/60 border border-cyan-400/40 text-cyan-200 font-orbitron text-[13px] hover:border-cyan-300 active:scale-95 cursor-pointer" data-val="180">180s</button>
+            <button class="adm-time-preset px-3 py-1 rounded-lg bg-cyan-950/60 border border-cyan-400/40 text-cyan-200 font-orbitron text-[13px] hover:border-cyan-300 active:scale-95 cursor-pointer" data-val="240">240s</button>
+            <button class="adm-time-preset px-3 py-1 rounded-lg bg-cyan-950/60 border border-cyan-400/40 text-cyan-200 font-orbitron text-[13px] hover:border-cyan-300 active:scale-95 cursor-pointer" data-val="300">300s</button>
+          </div>
+        </div>
+
+        <!-- Section 3: LEVEL CHALLENGE SPEED & BASE POINTS -->
+        <div class="grid grid-cols-2 gap-3 mb-5">
+          <!-- Level Time Bonus -->
+          <div class="p-3.5 rounded-xl bg-[#03132e]/70 border border-cyan-400/30">
+            <span class="font-orbitron font-bold text-[16px] tracking-[0.06em] text-cyan-200 uppercase block mb-0.5">ROUND TIME BONUS</span>
+            <span class="font-rajdhani text-[14px] text-cyan-100/70 block mb-2">Adjust recreate time per round</span>
+            <div class="flex items-center justify-between">
+              <button id="admExtraTimeMinus" class="vk-key w-[42px] h-[42px] rounded-lg font-orbitron font-bold text-[17px] flex items-center justify-center cursor-pointer hover:border-cyan-300">-5s</button>
+              <span id="admExtraTimeVal" class="font-orbitron font-black italic text-[22px] text-white">+0s</span>
+              <button id="admExtraTimePlus" class="vk-key w-[42px] h-[42px] rounded-lg font-orbitron font-bold text-[17px] flex items-center justify-center cursor-pointer hover:border-cyan-300">+5s</button>
+            </div>
+          </div>
+
+          <!-- Base Points -->
+          <div class="p-3.5 rounded-xl bg-[#03132e]/70 border border-cyan-400/30">
+            <span class="font-orbitron font-bold text-[16px] tracking-[0.06em] text-cyan-200 uppercase block mb-0.5">BASE PTS PER HIT</span>
+            <span class="font-rajdhani text-[14px] text-cyan-100/70 block mb-2">Scales per level (1x, 1.5x, 2x)</span>
+            <div class="flex items-center justify-between">
+              <button id="admBasePtsMinus" class="vk-key w-[42px] h-[42px] rounded-lg font-orbitron font-bold text-[17px] flex items-center justify-center cursor-pointer hover:border-cyan-300">-25</button>
+              <span id="admBasePtsVal" class="font-orbitron font-black italic text-[22px] text-white">100</span>
+              <button id="admBasePtsPlus" class="vk-key w-[42px] h-[42px] rounded-lg font-orbitron font-bold text-[17px] flex items-center justify-center cursor-pointer hover:border-cyan-300">+25</button>
+            </div>
+          </div>
+        </div>
+
+        <p class="font-rajdhani font-semibold text-[17px] text-cyan-100/75 text-center leading-snug mb-5">
+          Riders who reach the target points before the timer ends are crowned winners.
+        </p>
+
+        <!-- Buttons: SAVE, DEFAULTS, CLOSE -->
+        <div class="flex items-center justify-center space-x-5">
+          <button id="admSaveBtn" class="gold-btn w-[200px] h-[64px] rounded-full flex items-center justify-center cursor-pointer transition-transform active:scale-95">
+            <span class="font-orbitron font-black italic text-[20px] tracking-[0.08em] text-white uppercase pr-1">SAVE</span>
+          </button>
+          <button id="admDefaultBtn" class="px-5 h-[64px] rounded-full bg-slate-900/90 border-2 border-cyan-400/60 flex items-center justify-center cursor-pointer transition-transform active:scale-95 text-cyan-200 hover:text-white hover:border-cyan-300">
+            <span class="font-orbitron font-black italic text-[17px] tracking-[0.06em] uppercase">DEFAULTS</span>
+          </button>
+          <button id="admCloseBtn" class="hero-play-btn w-[180px] h-[64px] rounded-full flex items-center justify-center cursor-pointer transition-transform active:scale-95">
+            <span class="font-orbitron font-black italic text-[20px] tracking-[0.08em] text-white uppercase pr-1">CLOSE</span>
+          </button>
+        </div>
+      </div>
+
+      <svg class="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 760 700" preserveAspectRatio="none" style="filter: drop-shadow(0 0 16px rgba(0, 205, 255, 0.92));">
+        <polygon points="34,1.5 726,1.5 758.5,34 758.5,666 726,698.5 34,698.5 1.5,666 1.5,34" fill="none" stroke="#00D4FF" stroke-width="3" vector-effect="non-scaling-stroke" />
+      </svg>
+
+      <!-- Top Tab -->
+      <div class="absolute top-[14px] left-1/2 -translate-x-1/2 w-[420px] h-[58px] flex items-center justify-center">
+        <div class="hex-tab-fill absolute inset-0"></div>
+        <svg class="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 420 58" preserveAspectRatio="none" style="filter: drop-shadow(0 0 14px rgba(0, 210, 255, 0.95));">
+          <polygon points="24,1.5 396,1.5 418.5,29 396,56.5 24,56.5 1.5,29" fill="none" stroke="#00D8FF" stroke-width="3" vector-effect="non-scaling-stroke" />
+        </svg>
+        <h3 class="relative z-10 font-orbitron font-black italic text-[22px] tracking-[0.08em] text-white uppercase drop-shadow-[0_0_12px_rgba(0,225,255,0.8)] pr-2">OPERATOR SETTINGS</h3>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ==================== KIOSK SCALER & GAME LOGIC ==================== -->
+  <script>
+    /* ==========================================================
+       1. 1080x1920 AUTO-SCALING ENGINE FOR KIOSK MONITORS
+       ========================================================== */
+    const kioskContainer = document.getElementById('kioskContainer');
+
+    function scaleKiosk() {
+      const scaleX = window.innerWidth / 1080;
+      const scaleY = window.innerHeight / 1920;
+      kioskContainer.style.transform = `scale(${Math.min(scaleX, scaleY)})`;
+    }
+    window.addEventListener('resize', scaleKiosk);
+    window.addEventListener('orientationchange', scaleKiosk);
+    scaleKiosk();
+
+    /* ==========================================================
+       2. KIOSK INACTIVITY AUTO-RESET (45 SECONDS)
+       ========================================================== */
+    let idleTimer = null;
+    function resetIdleTimer() {
+      clearTimeout(idleTimer);
+      idleTimer = setTimeout(() => resetToTitle(), 45000);
+    }
+    window.addEventListener('pointerdown', resetIdleTimer);
+    window.addEventListener('keydown', resetIdleTimer);
+    resetIdleTimer();
+
+    /* ==========================================================
+       3. WEB AUDIO API SYNTHESIZER (No External Files)
+       ========================================================== */
+    class KioskSoundFX {
+      constructor() { this.ctx = null; this.muted = false; }
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          this.ctx = new AudioContext();
+        }
+        if (this.ctx.state === 'suspended') this.ctx.resume();
+      }
+      playTone(freq, now, dur, type = 'sine', vol = 0.3, rampTo = null) {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, now);
+        if (rampTo) osc.frequency.exponentialRampToValueAtTime(rampTo, now + dur);
+        gain.gain.setValueAtTime(vol, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + dur);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + dur);
+      }
+      playTap(step = 1) {
+        if (this.muted) return; this.init();
+        const now = this.ctx.currentTime;
+        const freq = 480 * Math.pow(1.06, Math.min(step, 12));
+        this.playTone(freq, now, 0.14, 'triangle', 0.35, freq * 1.8);
+      }
+      playHighlight() {
+        if (this.muted) return; this.init();
+        this.playTone(720, this.ctx.currentTime, 0.18, 'sine', 0.28, 980);
+      }
+      playMiss() {
+        if (this.muted) return; this.init();
+        this.playTone(130, this.ctx.currentTime, 0.26, 'sawtooth', 0.25, 60);
+      }
+      playStartBeep() {
+        if (this.muted) return; this.init();
+        const now = this.ctx.currentTime;
+        [523.25, 659.25, 783.99, 1046.50].forEach((freq, idx) => {
+          this.playTone(freq, now + idx * 0.08, 0.14, 'sine', 0.3);
+        });
+      }
+      playSuccess() {
+        if (this.muted) return; this.init();
+        const now = this.ctx.currentTime;
+        [392, 523.25, 659.25, 783.99, 1046.50].forEach((freq, i) => {
+          this.playTone(freq, now + i * 0.07, 0.5, 'sine', 0.28);
+        });
+      }
+      playGameOver() {
+        if (this.muted) return; this.init();
+        const now = this.ctx.currentTime;
+        [440, 349.23, 293.66, 220].forEach((freq, i) => {
+          this.playTone(freq, now + i * 0.16, 0.4, 'sawtooth', 0.18);
+        });
+      }
+      playTick() {
+        if (this.muted) return; this.init();
+        this.playTone(950, this.ctx.currentTime, 0.06, 'sine', 0.18);
+      }
+    }
+    const sound = new KioskSoundFX();
+
+    /* Mute + Fullscreen controls */
+    document.getElementById('muteBtn').addEventListener('click', () => {
+      sound.muted = !sound.muted;
+      document.getElementById('soundOnIcon').classList.toggle('hidden', sound.muted);
+      document.getElementById('soundOffIcon').classList.toggle('hidden', !sound.muted);
+    });
+    document.getElementById('fullscreenBtn').addEventListener('click', () => {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {});
+      else document.exitFullscreen().catch(() => {});
+    });
+
+    /* ==========================================================
+       4. SUPABASE CONFIG (registration, scores & leaderboard)
+       ========================================================== */
+    const SUPABASE_URL = 'https://gahzmqzlpeqhnpjpywcy.supabase.co';
+    const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_KQcb2Pcv2irW2h4S1CLgAw_-NIZ3MaD';
+    // Scan QR → follow this page to win the gift & connect with Yamaha Marine
+    const PRIZE_QR_URL = 'https://www.facebook.com/YamahaMarine.lk';
+
+    /* Adjustable prize & gameplay rules (operator can change via the settings panel:
+       tap SETTINGS in header, long-press Yamaha logo, or press "A") */
+    const DEFAULT_SETTINGS = {
+      winTargetPts: 1000,
+      timeLimitSec: 120,
+      basePoints: 100,
+      recreateExtraSec: 0,
+    };
+    let kioskSettings = (() => {
+      try {
+        const saved = JSON.parse(localStorage.getItem('umr_settings') || '{}');
+        if (!saved.winTargetPts || saved.winTargetPts === 1500) {
+          saved.winTargetPts = DEFAULT_SETTINGS.winTargetPts;
+        }
+        if (!saved.timeLimitSec || saved.timeLimitSec === 180) {
+          saved.timeLimitSec = DEFAULT_SETTINGS.timeLimitSec;
+        }
+        return { ...DEFAULT_SETTINGS, ...saved };
+      } catch (e) { return { ...DEFAULT_SETTINGS }; }
+    })();
+    function saveKioskSettings() {
+      try { localStorage.setItem('umr_settings', JSON.stringify(kioskSettings)); } catch (e) {}
+    }
+
+    const registeredPlayer = { id: null, name: '', phone: '' };
+
+    async function dbRegisterPlayer(name, phone) {
+      try {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/urban_players`, {
+          method: 'POST',
+          headers: {
+            apikey: SUPABASE_PUBLISHABLE_KEY,
+            Authorization: `Bearer ${SUPABASE_PUBLISHABLE_KEY}`,
+            'Content-Type': 'application/json',
+            Prefer: 'return=representation',
+          },
+          body: JSON.stringify({ name, phone }),
+        });
+        if (!res.ok) throw new Error(await res.text());
+        const rows = await res.json();
+        return Array.isArray(rows) ? rows[0] : null;
+      } catch (e) {
+        return null; // offline / table not ready → kiosk still works
+      }
+    }
+
+    async function dbSaveScore(id, score, levelReached) {
+      if (!id) return false;
+      try {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/urban_players?id=eq.${id}`, {
+          method: 'PATCH',
+          headers: {
+            apikey: SUPABASE_PUBLISHABLE_KEY,
+            Authorization: `Bearer ${SUPABASE_PUBLISHABLE_KEY}`,
+            'Content-Type': 'application/json',
+            Prefer: 'return=representation',
+          },
+          body: JSON.stringify({ score, level_reached: levelReached }),
+        });
+        return res.ok;
+      } catch (e) {
+        return false;
+      }
+    }
+
+    async function dbTopScores() {
+      try {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/urban_players?select=name,score&order=score.desc&limit=5`, {
+          headers: {
+            apikey: SUPABASE_PUBLISHABLE_KEY,
+            Authorization: `Bearer ${SUPABASE_PUBLISHABLE_KEY}`,
+          },
+        });
+        if (!res.ok) throw new Error(await res.text());
+        return await res.json();
+      } catch (e) {
+        return []; // fall back to local scores
+      }
+    }
+
+    /* ==========================================================
+       5. SCREEN NAVIGATION
+       ========================================================== */
+    const SCREENS = ['screenTitle', 'screenRegister', 'screenHowTo', 'screenLevelSelect', 'screenMemorize', 'screenRecreate', 'screenComplete', 'screenNameEntry', 'screenLeaderboard', 'screenQR'];
+    let activeScreen = 'screenTitle';
+
+    function showScreen(id) {
+      SCREENS.forEach(s => {
+        const el = document.getElementById(s);
+        if (s === id) {
+          el.classList.remove('hidden');
+        } else {
+          el.classList.add('hidden');
+        }
+      });
+      activeScreen = id;
+    }
+
+    function resetToTitle() {
+      clearAllTimers();
+      stopRunWatchdog();
+      runState.active = false;
+      runState.score = 0;
+      runState.levelIdx = 0;
+      closeAdmin();
+      showScreen('screenTitle');
+    }
+
+    /* ==========================================================
+       5. CITY TILE DEFINITIONS
+       8 distinct urban scenes cropped from the night-city art:
+       towers, roads, lights and urban details.
+       ========================================================== */
+    const CITY_TILES = [
+      { src: 'gameplay-bg.jpg',     pos: '50% 30%',  zoom: 1.65 }, // Twin towers close-up
+      { src: 'gameplay-bg.jpg',     pos: '8% 42%',   zoom: 1.9  }, // Left skyline cluster
+      { src: 'gameplay-bg.jpg',     pos: '93% 46%',  zoom: 1.9  }, // Right skyline cluster
+      { src: 'gameplay-bg.jpg',     pos: '50% 88%',  zoom: 1.7  }, // Curved bridge road
+      { src: 'gameplay-fast-bg.jpg',pos: '50% 68%',  zoom: 1.6  }, // Highway light trails
+      { src: 'gameplay-fast-bg.jpg',pos: '14% 55%',  zoom: 1.85 }, // Left street lights
+      { src: 'hero-bg.jpg',         pos: '85% 22%',  zoom: 2.2  }, // Neon towers
+      { src: 'hero-bg.jpg',         pos: '5% 80%',   zoom: 2.2  }, // Road speed streaks
+    ];
+
+    function tileInnerHTML(def) {
+      return `<img src="${def.src}" draggable="false" style="object-position:${def.pos}; transform:scale(${def.zoom});" />`;
+    }
+
+    /* ==========================================================
+       6. LEVEL CONFIGURATION (Dynamically tuned via Settings)
+       ========================================================== */
+    const BASE_LEVEL_TEMPLATES = [
+      { id: 1, name: 'NOVICE',    stars: 1, seqLen: 4, viewMs: 1000, baseTime: 20, mult: 1 },
+      { id: 2, name: 'PRO RIDER', stars: 2, seqLen: 6, viewMs: 850,  baseTime: 25, mult: 1.5 },
+    ];
+
+    const LEVELS = BASE_LEVEL_TEMPLATES.map(t => ({
+      id: t.id,
+      name: t.name,
+      stars: t.stars,
+      seqLen: t.seqLen,
+      viewMs: t.viewMs,
+      recreateTime: t.baseTime,
+      pointsPer: Math.round(100 * t.mult),
+      hint: `Sequence of ${t.seqLen} urban scenes • ${t.baseTime}s to recreate • ${Math.round(100 * t.mult)} pts per hit`
+    }));
+
+    function applySettingsToLevels() {
+      const extraSec = kioskSettings.recreateExtraSec || 0;
+      const basePts = kioskSettings.basePoints || 100;
+      BASE_LEVEL_TEMPLATES.forEach((t, idx) => {
+        const lv = LEVELS[idx];
+        lv.recreateTime = Math.max(10, t.baseTime + extraSec);
+        lv.pointsPer = Math.round(basePts * t.mult);
+        lv.hint = `Sequence of ${lv.seqLen} urban scenes • ${lv.recreateTime}s to recreate • ${lv.pointsPer} pts per hit`;
+      });
+      if (document.getElementById('levelCardsWrap') && document.getElementById('levelCardsWrap').children.length) {
+        renderLevelCards();
+      }
+      updatePrizeLine();
+      if (document.getElementById('levelHint') && typeof selectedLevelIdx !== 'undefined' && LEVELS[selectedLevelIdx]) {
+        document.getElementById('levelHint').textContent = LEVELS[selectedLevelIdx].hint;
+      }
+    }
+    const MAX_STRIKES = 3;
+
+    const runState = {
+      active: false,
+      levelIdx: 0,
+      score: 0,          // total accumulated score across levels
+      levelScore: 0,     // score within current level (points only)
+      sequence: [],      // array of tile indices (grid positions), in order
+      gridOrder: [],     // shuffled order of tiles for grid display
+      inputIdx: 0,
+      strikes: 0,
+      correctTaps: 0,
+      totalTaps: 0,
+      timeBonus: 0,
+      runOver: false,    // true when all levels finished OR game over
+      lastRunSaved: false,
+      timeLimitEnd: 0,   // overall game deadline (prize rule)
+      timedOut: false,   // true when the overall prize timer ran out
+      winner: false,     // reached the prize target within the time limit
+    };
+
+    let runWatchdog = null;
+    function startRunWatchdog() {
+      stopRunWatchdog();
+      runWatchdog = setInterval(() => {
+        if (runState.active && runState.timeLimitEnd && Date.now() >= runState.timeLimitEnd) {
+          stopRunWatchdog();
+          runState.timedOut = true;
+          endLevel(false, LEVELS[runState.levelIdx], true);
+        }
+      }, 1000);
+    }
+    function stopRunWatchdog() {
+      if (runWatchdog) { clearInterval(runWatchdog); runWatchdog = null; }
+    }
+
+    let timers = [];
+    function addTimer(fn, ms) { const t = setTimeout(fn, ms); timers.push(t); return t; }
+    function addInterval(fn, ms) { const t = setInterval(fn, ms); timers.push(t); return t; }
+    function clearAllTimers() { timers.forEach(clearTimeout); timers.forEach(clearInterval); timers = []; }
+
+    /* ==========================================================
+       7. TITLE SCREEN
+       ========================================================== */
+    document.getElementById('btnTitlePlay').addEventListener('click', () => {
+      sound.playStartBeep();
+      runState.score = 0;
+      runState.levelIdx = 0;
+      runState.active = false;
+      // Every new player registers first (name + phone → database)
+      resetRegistration();
+      showScreen('screenRegister');
+    });
+
+    /* ==========================================================
+       8. LEVEL SELECT SCREEN
+       ========================================================== */
+    let selectedLevelIdx = 0;
+
+    function renderLevelCards() {
+      const wrap = document.getElementById('levelCardsWrap');
+      wrap.innerHTML = '';
+      LEVELS.forEach((lv, idx) => {
+        const isSelected = (idx === selectedLevelIdx);
+        const thumb = CITY_TILES[(idx * 3) % CITY_TILES.length];
+        const card = document.createElement('div');
+        card.setAttribute('role', 'button');
+        card.setAttribute('tabindex', '0');
+        card.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
+        card.className = `level-card w-[420px] h-[480px] flex flex-col items-center pt-5 pb-6 px-6 cursor-pointer select-none transition-all duration-200 ${isSelected ? 'selected scale-[1.02]' : 'opacity-90 hover:opacity-100 hover:scale-[1.01]'}`;
+        card.innerHTML = `
+          <div class="w-full h-[230px] rounded-xl overflow-hidden border-2 border-cyan-400/50 relative pointer-events-none" style="box-shadow: 0 0 16px rgba(0,200,255,0.4);">
+            ${tileInnerHTML(thumb)}
+          </div>
+          <div class="font-orbitron font-black italic text-[36px] text-white mt-5 uppercase drop-shadow-[0_0_10px_rgba(0,225,255,0.85)] pointer-events-none">LEVEL ${lv.id}</div>
+          <div class="font-orbitron font-bold text-[20px] tracking-[0.28em] text-cyan-200/90 mt-1 uppercase pointer-events-none">${lv.name}</div>
+          <div class="flex items-center space-x-2 mt-4 pointer-events-none">${renderStars(lv.stars)}</div>
+
+          <!-- Selection Badge -->
+          <div class="level-check absolute top-4 right-4 px-3.5 py-1.5 rounded-full flex items-center space-x-1.5 transition-all pointer-events-none ${isSelected ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}"
+               style="background: linear-gradient(180deg, #7CFFD4, #00E693); box-shadow: 0 0 18px rgba(0,255,168,0.9);">
+            <svg class="w-5 h-5 text-[#04122e]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3.2" d="M5 13l4 4L19 7"/></svg>
+            <span class="font-orbitron font-bold text-[14px] text-[#04122e] tracking-wider">SELECTED</span>
+          </div>
+        `;
+        const onSelect = () => {
+          selectedLevelIdx = idx;
+          sound.playTap(idx + 1);
+          renderLevelCards();
+          updateLevelHint();
+        };
+        card.addEventListener('click', onSelect);
+        card.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            onSelect();
+          }
+        });
+        wrap.appendChild(card);
+      });
+      updateLevelHint();
+    }
+
+    function renderStars(count) {
+      let html = '';
+      for (let i = 0; i < 3; i++) {
+        const filled = i < count;
+        html += `<svg class="w-9 h-9 ${filled ? 'drop-shadow-[0_0_8px_rgba(255,190,0,0.9)]' : 'opacity-30'}" viewBox="0 0 24 24" fill="${filled ? '#FFBB00' : '#4A6080'}">
+          <path d="M12 2l2.9 6.26 6.6.56-5 4.36 1.5 6.45L12 16.3 5.99 19.63l1.5-6.45-5-4.36 6.6-.56L12 2z"/>
+        </svg>`;
+      }
+      return html;
+    }
+
+    function updateLevelHint() {
+      if (LEVELS[selectedLevelIdx]) {
+        document.getElementById('levelHint').textContent = LEVELS[selectedLevelIdx].hint;
+      }
+    }
+
+    document.getElementById('btnLevelStart').addEventListener('click', () => {
+      sound.playStartBeep();
+      runState.active = true;
+      runState.score = 0; // Fresh run from level select
+      runState.levelIdx = selectedLevelIdx; // Synchronize level index!
+      // Prize rule: reach the target points within the overall time limit
+      runState.timeLimitEnd = Date.now() + kioskSettings.timeLimitSec * 1000;
+      runState.timedOut = false;
+      runState.winner = false;
+      startRunWatchdog();
+      startLevel(selectedLevelIdx);
+    });
+
+    /* ==========================================================
+       9. GAMEPLAY — MEMORIZE PHASE
+       ========================================================== */
+    function startLevel(levelIdx) {
+      clearAllTimers();
+      runState.active = true; // Crucial: Re-activate input for this round!
+      runState.levelIdx = levelIdx; // Ensure runState.levelIdx is strictly updated!
+      const lv = LEVELS[levelIdx];
+
+      runState.levelScore = 0;
+      runState.inputIdx = 0;
+      runState.strikes = 0;
+      runState.correctTaps = 0;
+      runState.totalTaps = 0;
+      runState.timeBonus = 0;
+      runState.lastRunSaved = false;
+
+      // Keep overall run watchdog alive across rounds
+      if (runState.timeLimitEnd && !runWatchdog) {
+        startRunWatchdog();
+      }
+
+      // Build shuffled grid of all 8 tiles
+      runState.gridOrder = shuffle([...Array(CITY_TILES.length).keys()]);
+
+      // Sequence: pick seqLen distinct tiles in random order
+      runState.sequence = shuffle([...Array(CITY_TILES.length).keys()]).slice(0, lv.seqLen);
+
+      renderMemorizeScreen(lv);
+      showScreen('screenMemorize');
+      runMemorizePhase(lv);
+    }
+
+    function shuffle(arr) {
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    function renderMemorizeScreen(lv) {
+      document.getElementById('memLevelNum').textContent = lv.id;
+      const grid = document.getElementById('memorizeGrid');
+      grid.innerHTML = '';
+      runState.gridOrder.forEach(tileIdx => {
+        const tile = document.createElement('div');
+        tile.className = 'memory-tile w-[225px] h-[172px] opacity-90';
+        tile.dataset.tile = tileIdx;
+        tile.innerHTML = tileInnerHTML(CITY_TILES[tileIdx]);
+        grid.appendChild(tile);
+      });
+
+      // Progress dots
+      const dots = document.getElementById('memorizeDots');
+      dots.innerHTML = '';
+      for (let i = 0; i < lv.seqLen; i++) {
+        const dot = document.createElement('div');
+        dot.className = 'w-5 h-5 rounded-full border-2 border-cyan-400/60 bg-[#03122d]';
+        dots.appendChild(dot);
+      }
+
+      // Countdown ring reset
+      const ring = document.getElementById('memRing');
+      ring.style.strokeDashoffset = 0;
+      document.getElementById('memCountdown').textContent = String(Math.ceil(memorizeTotalSecs(lv))).padStart(2, '0');
+    }
+
+    function memorizeTotalSecs(lv) {
+      return Math.ceil((lv.seqLen * (lv.viewMs + 250) + 1500) / 1000);
+    }
+
+    function runMemorizePhase(lv) {
+      // Total memorize countdown
+      const totalSecs = memorizeTotalSecs(lv);
+      const ring = document.getElementById('memRing');
+      const CIRC = 251.2;
+      let elapsed = 0;
+      addInterval(() => {
+        elapsed++;
+        const remain = Math.max(0, totalSecs - elapsed);
+        document.getElementById('memCountdown').textContent = String(remain).padStart(2, '0');
+        ring.style.strokeDashoffset = String(CIRC * (elapsed / totalSecs));
+        if (remain <= 3 && remain > 0) sound.playTick();
+      }, 1000);
+
+      const tiles = document.querySelectorAll('#memorizeGrid .memory-tile');
+      const dots = document.getElementById('memorizeDots').children;
+
+      // Sequential highlight of the sequence
+      let t = 900;
+      runState.sequence.forEach((tileIdx, step) => {
+        addTimer(() => {
+          const tile = Array.from(tiles).find(el => Number(el.dataset.tile) === tileIdx);
+          if (!tile) return;
+          tile.classList.add('tile-highlight');
+          sound.playHighlight();
+
+          // Fill corresponding dot
+          if (dots[step]) dots[step].style.background = 'linear-gradient(180deg, #7CFFD4, #00E693)';
+
+          addTimer(() => tile.classList.remove('tile-highlight'), lv.viewMs * 0.72);
+        }, t);
+        t += lv.viewMs + 250;
+      });
+
+      // Brief "GET READY" beat, then switch to recreate phase
+      addTimer(() => startRecreatePhase(lv), t + 900);
+    }
+
+    /* ==========================================================
+       10. GAMEPLAY — RECREATE PHASE
+       ========================================================== */
+    function startRecreatePhase(lv) {
+      clearAllTimers();
+      runState.active = true; // Ensure active recreation inputs
+      renderRecreateScreen(lv);
+      showScreen('screenRecreate');
+
+      // Countdown timer
+      const CIRC = 251.2;
+      const ring = document.getElementById('recRing');
+      let remainMs = lv.recreateTime * 1000;
+      const totalMs = remainMs;
+
+      addInterval(() => {
+        remainMs -= 100;
+        const remainSec = Math.max(0, Math.ceil(remainMs / 1000));
+        document.getElementById('recCountdown').textContent = String(remainSec).padStart(2, '0');
+        document.getElementById('recTimeBar').style.width = `${Math.max(0, (remainMs / totalMs) * 100)}%`;
+        ring.style.strokeDashoffset = String(CIRC * (1 - Math.max(0, remainMs / totalMs)));
+        if (remainSec <= 5 && remainSec > 0) sound.playTick();
+        if (remainMs <= 0) endLevel(false, lv);
+      }, 100);
+    }
+
+    function renderRecreateScreen(lv) {
+      document.getElementById('recHudScore').textContent = runState.score + runState.levelScore;
+      renderStrikes();
+
+      // Progress slots
+      const slots = document.getElementById('recreateSlots');
+      slots.innerHTML = '';
+      for (let i = 0; i < lv.seqLen; i++) {
+        const s = document.createElement('div');
+        s.className = 'progress-slot';
+        s.textContent = i + 1;
+        slots.appendChild(s);
+      }
+      slots.children[0].classList.add('current');
+
+      // Grid — interactive
+      const grid = document.getElementById('recreateGrid');
+      grid.innerHTML = '';
+      runState.gridOrder.forEach(tileIdx => {
+        const tile = document.createElement('div');
+        tile.className = 'memory-tile w-[225px] h-[172px] opacity-90';
+        tile.dataset.tile = tileIdx;
+        tile.innerHTML = tileInnerHTML(CITY_TILES[tileIdx]);
+        tile.addEventListener('click', () => handleRecreateTap(tile, tileIdx, lv));
+        grid.appendChild(tile);
+      });
+
+      document.getElementById('recCountdown').textContent = String(lv.recreateTime).padStart(2, '0');
+      document.getElementById('recTimeBar').style.width = '100%';
+      document.getElementById('recRing').style.strokeDashoffset = '0';
+    }
+
+    function renderStrikes() {
+      const row = document.getElementById('strikeRow');
+      row.innerHTML = '';
+      for (let i = 0; i < MAX_STRIKES; i++) {
+        const alive = i < MAX_STRIKES - runState.strikes;
+        const x = document.createElement('div');
+        x.className = 'w-12 h-12 rounded-xl flex items-center justify-center';
+        x.style.border = `2px solid ${alive ? 'rgba(255,59,92,0.8)' : 'rgba(120,140,170,0.3)'}`;
+        x.style.background = alive ? 'rgba(60,8,20,0.75)' : 'rgba(10,20,40,0.6)';
+        x.style.boxShadow = alive ? '0 0 14px rgba(255,59,92,0.5)' : 'none';
+        x.innerHTML = `<svg class="w-7 h-7 ${alive ? 'text-[#FF5C7A]' : 'text-slate-600 opacity-40'}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-width="3" d="M6 6l12 12M18 6L6 18"/>
+          </svg>`;
+        row.appendChild(x);
+      }
+    }
+
+    function handleRecreateTap(tile, tileIdx, lv) {
+      if (!runState.active || tile.classList.contains('tile-correct')) return;
+
+      runState.totalTaps++;
+      const expected = runState.sequence[runState.inputIdx];
+      const slots = document.getElementById('recreateSlots');
+
+      if (tileIdx === expected) {
+        // CORRECT
+        runState.correctTaps++;
+        runState.levelScore += lv.pointsPer;
+        runState.inputIdx++;
+        tile.classList.add('tile-correct', 'tile-solved');
+        sound.playTap(runState.inputIdx);
+        document.getElementById('recHudScore').textContent = runState.score + runState.levelScore;
+
+        // Floating "+points"
+        const rect = tile.getBoundingClientRect();
+        const zone = document.getElementById('screenRecreate').getBoundingClientRect();
+        floatScore('+' + lv.pointsPer, rect.left - zone.left + rect.width / 2, rect.top - zone.top + rect.height / 2, '#00FFA8');
+
+        // Slots update
+        slots.children[runState.inputIdx - 1].classList.remove('current');
+        slots.children[runState.inputIdx - 1].classList.add('done');
+        if (runState.inputIdx < lv.seqLen) {
+          slots.children[runState.inputIdx].classList.add('current');
+        } else {
+          endLevel(true, lv);
+        }
+      } else {
+        // WRONG
+        runState.strikes++;
+        sound.playMiss();
+        tile.classList.add('tile-wrong');
+        addTimer(() => tile.classList.remove('tile-wrong'), 450);
+        renderStrikes();
+        if (runState.strikes >= MAX_STRIKES) endLevel(false, lv);
+      }
+    }
+
+    function floatScore(text, x, y, color) {
+      const zone = document.getElementById('screenRecreate');
+      const el = document.createElement('div');
+      el.className = 'floating-score text-[42px]';
+      el.style.left = x + 'px';
+      el.style.top = y + 'px';
+      el.style.color = color;
+      el.style.textShadow = `0 0 16px ${color}, 0 0 32px ${color}`;
+      el.textContent = text;
+      zone.appendChild(el);
+      setTimeout(() => el.remove(), 900);
+    }
+
+    /* ==========================================================
+       11. LEVEL COMPLETE / GAME OVER
+       ========================================================== */
+    function endLevel(won, lv, timedOut = false) {
+      clearAllTimers();
+      stopRunWatchdog();
+      runState.active = false;
+      runState.timedOut = timedOut;
+
+      // Time bonus only on win (not when the overall timer runs out)
+      const remainSec = (won && !timedOut) ? Math.max(0, parseInt(document.getElementById('recCountdown').textContent || '0', 10)) : 0;
+      runState.timeBonus = won ? remainSec * 10 : 0;
+      runState.score += runState.levelScore + runState.timeBonus;
+
+      // Accuracy
+      const denom = lv.seqLen + runState.strikes;
+      const accuracy = denom > 0 ? Math.round((runState.correctTaps / denom) * 100) : 0;
+
+      // Run-over conditions: completed all levels OR any loss OR time limit reached
+      runState.runOver = (!won) || (lv.id >= LEVELS.length) || timedOut;
+
+      // Prize rule: target points reached without timing out, and won final challenge
+      runState.winner = won && !timedOut && (runState.score >= kioskSettings.winTargetPts);
+
+      if (runState.runOver) {
+        // Automatically persist score to local storage and Supabase
+        const finalName = (registeredPlayer.name || 'RIDER').trim().toUpperCase();
+        registeredPlayer.name = finalName;
+        saveScore(finalName);
+        dbSaveScore(registeredPlayer.id, runState.score, runState.levelIdx + 1);
+
+        // DIRECTLY present the QR screen (CONGRATULATIONS or FAILED with Scan QR Code!)
+        showQrScreen(runState.winner);
+      } else {
+        // Intermediate level complete (Level 1 or Level 2 passed)
+        const titleEl = document.getElementById('completeTitle');
+        titleEl.textContent = 'LEVEL COMPLETE!';
+        sound.playSuccess();
+
+        const primaryLabel = document.getElementById('btnCompletePrimaryLabel');
+        primaryLabel.textContent = 'NEXT LEVEL ▶';
+
+        // Animate score count-up
+        const scoreEl = document.getElementById('finalScoreVal');
+        const target = runState.score;
+        let cur = 0;
+        const step = Math.max(1, Math.ceil(target / 60));
+        const countInterval = setInterval(() => {
+          cur = Math.min(target, cur + step);
+          scoreEl.textContent = cur.toLocaleString();
+          if (cur >= target) clearInterval(countInterval);
+        }, 24);
+        timers.push(countInterval);
+
+        document.getElementById('timeBonusVal').textContent = '+' + runState.timeBonus;
+        document.getElementById('accuracyVal').textContent = accuracy + '%';
+
+        showScreen('screenComplete');
+      }
+    }
+
+    document.getElementById('btnCompletePrimary').addEventListener('click', () => {
+      if (runState.runOver) {
+        // Record score with registered player name and present the customized QR result screen
+        const finalName = (registeredPlayer.name || 'PLAYER').trim().toUpperCase();
+        registeredPlayer.name = finalName;
+        saveScore(finalName);
+        dbSaveScore(registeredPlayer.id, runState.score, runState.levelIdx + 1);
+        showQrScreen(runState.winner);
+      } else {
+        // Advance to next level
+        runState.levelIdx++;
+        sound.playStartBeep();
+        startLevel(runState.levelIdx);
+      }
+    });
+
+    document.getElementById('btnCompleteViewBoard').addEventListener('click', () => {
+      renderLeaderboard(null);
+      showScreen('screenLeaderboard');
+    });
+
+    /* ==========================================================
+       12. VIRTUAL KEYBOARD BUILDER (shared)
+       ========================================================== */
+    function buildKeyboardInto(rowIds, rows, onKey) {
+      rows.forEach((rowStr, i) => {
+        const rowEl = document.getElementById(rowIds[i]);
+        rowEl.innerHTML = '';
+        [...rowStr].forEach(ch => {
+          const key = document.createElement('button');
+          key.className = 'vk-key w-[88px] h-[76px] rounded-xl font-orbitron font-black text-[30px] flex items-center justify-center';
+          key.textContent = ch;
+          key.addEventListener('click', () => onKey(ch));
+          rowEl.appendChild(key);
+        });
+      });
+    }
+
+    /* ==========================================================
+       13. REGISTRATION (NAME + PHONE → DATABASE)
+       ========================================================== */
+    let regField = 'name'; // 'name' | 'phone'
+    let regName = '';
+    let regPhone = '';
+
+    function resetRegistration() {
+      regField = 'name';
+      regName = '';
+      regPhone = '';
+      registeredPlayer.id = null;
+      registeredPlayer.name = '';
+      registeredPlayer.phone = '';
+      updateRegDisplay();
+      setRegStatus('');
+    }
+
+    function setRegStatus(text) {
+      document.getElementById('regStatus').textContent = text;
+    }
+
+    function updateRegDisplay() {
+      const nameEl = document.getElementById('regNameVal');
+      const phoneEl = document.getElementById('regPhoneVal');
+      nameEl.textContent = regName || '\u00A0';
+      phoneEl.textContent = regPhone || '\u00A0';
+      document.getElementById('regNameBox').classList.toggle('active', regField === 'name');
+      document.getElementById('regPhoneBox').classList.toggle('active', regField === 'phone');
+    }
+
+    function regType(ch) {
+      if (regField === 'phone') {
+        if (!/[0-9]/.test(ch) || regPhone.length >= 15) return;
+        regPhone += ch;
+      } else {
+        if (regName.length >= 12) return;
+        regName += ch;
+      }
+      updateRegDisplay();
+      sound.playTick();
+    }
+
+    buildKeyboardInto(['regKbRow1', 'regKbRow2', 'regKbRow3', 'regKbRow4'],
+      ['ABCDEFGHIJ', 'KLMNOPQRST', 'UVWXYZ', '1234567890'], regType);
+
+    document.getElementById('regNameBox').addEventListener('click', () => { regField = 'name'; updateRegDisplay(); });
+    document.getElementById('regPhoneBox').addEventListener('click', () => { regField = 'phone'; updateRegDisplay(); });
+
+    document.getElementById('regKbSpace').addEventListener('click', () => {
+      if (regField === 'name' && regName.length && regName.length < 12 && !regName.endsWith(' ')) {
+        regName += ' ';
+        updateRegDisplay();
+        sound.playTick();
+      }
+    });
+    document.getElementById('regKbDel').addEventListener('click', () => {
+      if (regField === 'name') regName = regName.slice(0, -1);
+      else regPhone = regPhone.slice(0, -1);
+      updateRegDisplay();
+      sound.playTick();
+    });
+
+    document.getElementById('btnRegister').addEventListener('click', async () => {
+      const name = regName.trim();
+      const phone = regPhone.replace(/\s+/g, '');
+
+      if (name.length < 2) { setRegStatus('ENTER YOUR NAME (2+ LETTERS)'); sound.playMiss(); return; }
+      if (phone.length < 7 || phone.length > 15) { setRegStatus('ENTER A VALID PHONE NUMBER'); sound.playMiss(); return; }
+
+      setRegStatus('SAVING TO DATABASE...');
+      sound.playStartBeep();
+
+      const row = await dbRegisterPlayer(name.toUpperCase(), phone);
+      registeredPlayer.id = row ? row.id : null;
+      registeredPlayer.name = name.toUpperCase();
+      registeredPlayer.phone = phone;
+
+      setRegStatus(registeredPlayer.id ? 'REGISTERED ✓' : 'REGISTERED (KIOSK MODE)');
+
+      // Proceed to How To Play
+      setTimeout(() => {
+        sound.playStartBeep();
+        showScreen('screenHowTo');
+      }, 900);
+    });
+
+    /* ==========================================================
+       14. HOW TO PLAY SCREEN
+       ========================================================== */
+    document.getElementById('btnHowToStart').addEventListener('click', () => {
+      sound.playStartBeep();
+      showScreen('screenLevelSelect');
+      renderLevelCards();
+      document.getElementById('selectHudScore').textContent = runState.score;
+    });
+
+    /* ==========================================================
+       15. NAME ENTRY (CONFIRM BEFORE SAVING SCORE)
+       ========================================================== */
+    let playerName = 'PLAYER';
+
+    function openNameEntry() {
+      // Prefill with the registered name — the rider can still edit it
+      playerName = registeredPlayer.name || '';
+      updateNameDisplay();
+      showScreen('screenNameEntry');
+    }
+
+    function updateNameDisplay() {
+      document.getElementById('nameDisplay').textContent = playerName.length ? playerName : 'PLAYER';
+    }
+
+    buildKeyboardInto(['kbRow1', 'kbRow2', 'kbRow3'],
+      ['ABCDEFGHIJ', 'KLMNOPQRST', 'UVWXYZ0123'], (ch) => {
+      if (playerName.length >= 10) return;
+      playerName += ch;
+      updateNameDisplay();
+      sound.playTick();
+    });
+
+    document.getElementById('kbSpace').addEventListener('click', () => {
+      if (playerName.length && playerName.length < 10 && !playerName.endsWith(' ')) {
+        playerName += ' ';
+        updateNameDisplay();
+        sound.playTick();
+      }
+    });
+    document.getElementById('kbDel').addEventListener('click', () => {
+      playerName = playerName.slice(0, -1);
+      updateNameDisplay();
+      sound.playTick();
+    });
+    document.getElementById('kbOk').addEventListener('click', async () => {
+      if (!playerName.trim()) playerName = registeredPlayer.name || 'PLAYER';
+      const finalName = playerName.trim().toUpperCase();
+      registeredPlayer.name = finalName;
+
+      saveScore(finalName);                                   // local backup
+      dbSaveScore(registeredPlayer.id, runState.score, runState.levelIdx + 1); // database update
+      renderLeaderboard(finalName);
+      sound.playSuccess();
+      showScreen('screenLeaderboard');
+    });
+
+    /* ==========================================================
+       13. LEADERBOARD
+       ========================================================== */
+    const LB_KEY = 'umr_leaderboard_v1';
+    const LB_SEED = [
+      { name: 'DILSHAN P', score: 4980 },
+      { name: 'HAMAIL A',  score: 3270 },
+      { name: 'RAYAN S',   score: 2890 },
+      { name: 'MATEEN R',  score: 2680 },
+      { name: 'MEHDI M K', score: 2490 },
+    ];
+
+    function loadLeaderboard() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(LB_KEY) || '[]');
+        return Array.isArray(saved) ? saved : [];
+      } catch (e) { return []; }
+    }
+
+    function saveScore(name) {
+      if (runState.lastRunSaved) return;
+      const list = loadLeaderboard();
+      list.push({ name, score: runState.score });
+      list.sort((a, b) => b.score - a.score);
+      try { localStorage.setItem(LB_KEY, JSON.stringify(list.slice(0, 25))); } catch (e) {}
+      runState.lastRunSaved = true;
+    }
+
+    async function renderLeaderboard(highlightName) {
+      const listEl = document.getElementById('leaderboardList');
+      listEl.innerHTML = '<div class="font-orbitron text-[20px] tracking-[0.3em] text-cyan-300/70 uppercase text-center py-10">LOADING SCORES...</div>';
+
+      // Top scores from the database + local kiosk backup + seeded samples
+      const dbScores = await dbTopScores();
+      const local = loadLeaderboard();
+      const merged = [...dbScores, ...local, ...LB_SEED].sort((a, b) => b.score - a.score).slice(0, 5);
+
+      const rankStyles = [
+        { bg: 'linear-gradient(180deg, #FFE9A8, #FFBB00)', ring: 'rgba(255,190,0,0.95)', txt: '#3A2600' },
+        { bg: 'linear-gradient(180deg, #F2F7FF, #B9C8DC)', ring: 'rgba(200,220,245,0.9)', txt: '#22303F' },
+        { bg: 'linear-gradient(180deg, #FFD2A8, #E08A3C)', ring: 'rgba(230,150,80,0.9)', txt: '#3A2000' },
+      ];
+
+      listEl.innerHTML = '';
+      merged.forEach((entry, i) => {
+        const isPlayer = highlightName && entry.name === highlightName;
+        const style = i < 3 ? rankStyles[i] : null;
+        const row = document.createElement('div');
+        row.className = 'w-full flex items-center px-6 py-3 rounded-xl';
+        row.style.background = isPlayer
+          ? 'linear-gradient(90deg, rgba(0,120,255,0.55), rgba(0,229,255,0.28))'
+          : 'rgba(4, 22, 52, 0.72)';
+        row.style.border = `1.5px solid ${isPlayer ? '#FFFFFF' : 'rgba(0, 210, 255, 0.35)'}`;
+        row.style.boxShadow = isPlayer ? '0 0 22px rgba(0, 229, 255, 0.75)' : 'none';
+
+        const rankBadge = style
+          ? `<div class="w-[62px] h-[62px] rounded-full flex items-center justify-center font-orbitron font-black text-[26px]" style="background:${style.bg}; box-shadow: 0 0 16px ${style.ring}; color:${style.txt};">${i + 1}</div>`
+          : `<div class="w-[62px] h-[62px] rounded-full flex items-center justify-center font-orbitron font-black text-[26px] text-cyan-200 border-2 border-cyan-400/50" style="background: rgba(3,18,45,0.9);">${i + 1}</div>`;
+
+        row.innerHTML = `
+          <div class="w-32 flex justify-center">${rankBadge}</div>
+          <div class="flex-1 pl-8 font-orbitron font-bold italic text-[30px] tracking-wide uppercase ${isPlayer ? 'text-white' : 'text-slate-100'}">
+            ${entry.name}${isPlayer ? ' <span class=\"text-cyan-300 text-[20px] not-italic\">(YOU)</span>' : ''}
+          </div>
+          <div class="w-40 text-right pr-4 font-orbitron font-black text-[34px] text-white tracking-wider drop-shadow-[0_0_10px_rgba(0,225,255,0.7)]">
+            ${entry.score.toLocaleString()}
+          </div>
+        `;
+        listEl.appendChild(row);
+      });
+
+      const claimPrizeBtn = document.getElementById('btnLeaderboardClaimPrize');
+      if (claimPrizeBtn) {
+        const span = claimPrizeBtn.querySelector('span');
+        if (span) {
+          span.textContent = runState.winner ? 'COLLECT REWARD' : 'SCAN QR & FOLLOW';
+        }
+      }
+    }
+
+    document.getElementById('btnLeaderboardHome').addEventListener('click', () => {
+      sound.playStartBeep();
+      resetToTitle();
+    });
+
+    /* ==========================================================
+       16. PRIZE & RESULT QR SCREEN (Win vs Loss + Facebook Follow)
+       ========================================================== */
+    function showQrScreen(isWinner) {
+      const titleEl = document.getElementById('qrTitle');
+      const subEl = document.getElementById('qrSubline');
+      const badgeEl = document.getElementById('qrBadgeLabel');
+      const statusPill = document.getElementById('qrStatusPill');
+      const iconWrap = document.getElementById('qrIconWrap');
+      const playAgainBtn = document.getElementById('btnQrPlayAgain');
+      const playAgainLabel = document.getElementById('btnQrPlayAgainLabel');
+      const statsCard = document.getElementById('qrStatsCard');
+      const riderNameEl = document.getElementById('qrRiderName');
+      const finalScoreEl = document.getElementById('qrFinalScore');
+      const targetScoreEl = document.getElementById('qrTargetScore');
+      const boxCard = document.getElementById('qrBoxCard');
+      const fbCard = document.getElementById('qrFbCard');
+
+      // Update rider & score stats
+      if (riderNameEl) riderNameEl.textContent = (registeredPlayer.name || 'RIDER').toUpperCase();
+      if (finalScoreEl) finalScoreEl.textContent = `${runState.score.toLocaleString()} PTS`;
+      if (targetScoreEl) targetScoreEl.textContent = `${kioskSettings.winTargetPts.toLocaleString()} PTS`;
+
+      if (isWinner) {
+        if (statusPill) {
+          statusPill.className = 'mb-4 px-6 py-1.5 rounded-full bg-cyan-950/70 border border-cyan-400/50 backdrop-blur-md shadow-[0_0_16px_rgba(0,225,255,0.35)] flex items-center justify-center';
+        }
+        if (badgeEl) {
+          badgeEl.textContent = '★ OFFICIAL WINNER ★';
+          badgeEl.className = 'font-orbitron font-bold text-[17px] tracking-[0.22em] text-cyan-200 uppercase';
+        }
+        if (titleEl) {
+          titleEl.textContent = 'CONGRATULATIONS!';
+          titleEl.className = 'font-orbitron font-black italic text-[46px] tracking-[0.04em] text-white uppercase drop-shadow-[0_0_22px_rgba(0,225,255,0.95)] pr-2';
+        }
+        if (subEl) {
+          subEl.innerHTML = 'You conquered the rush! <span class="text-cyan-200 drop-shadow-[0_0_16px_rgba(0,229,255,0.95)]">Target points reached!</span>';
+        }
+        if (statsCard) {
+          statsCard.className = 'mb-6 px-7 py-2.5 rounded-2xl bg-[#031129]/90 border border-cyan-400/50 backdrop-blur-md shadow-[0_0_20px_rgba(0,225,255,0.3)] flex items-center justify-center space-x-7';
+        }
+        if (finalScoreEl) {
+          finalScoreEl.className = 'font-orbitron font-black text-[26px] text-[#00E5FF] drop-shadow-[0_0_12px_rgba(0,225,255,0.9)]';
+        }
+        if (boxCard) {
+          boxCard.className = 'relative mb-6 p-4 rounded-2xl bg-[#03132e]/85 border-2 border-cyan-400/60 shadow-[0_0_30px_rgba(0,220,255,0.4)] flex flex-col items-center';
+        }
+        if (fbCard) {
+          fbCard.className = 'relative mb-8 px-8 py-3 rounded-2xl bg-[#020d24]/90 border border-cyan-400/40 flex items-center justify-center space-x-3.5 shadow-[0_0_20px_rgba(0,200,255,0.25)]';
+        }
+        if (iconWrap) {
+          iconWrap.innerHTML = `
+            <svg class="w-14 h-14 drop-shadow-[0_0_20px_rgba(255,190,0,0.9)]" viewBox="0 0 24 24" fill="url(#trophyGoldC)">
+              <defs>
+                <linearGradient id="trophyGoldC" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stop-color="#FFF2A6" />
+                  <stop offset="50%" stop-color="#FFBB00" />
+                  <stop offset="100%" stop-color="#C97A00" />
+                </linearGradient>
+              </defs>
+              <path d="M19 4h-2V3a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v1H5a3 3 0 0 0-3 3v2a5 5 0 0 0 4.54 4.97A6 6 0 0 0 11 16.92V19H8a1 1 0 0 0 0 2h8a1 1 0 0 0 0-2h-3v-2.08a6 6 0 0 0 4.46-3.95A5 5 0 0 0 22 9V7a3 3 0 0 0-3-3zM4 9V7a1 1 0 0 1 1-1h2v4.88A3 3 0 0 1 4 9zm16 0a3 3 0 0 1-3 1.88V6h2a1 1 0 0 1 1 1z"/>
+            </svg>
+          `;
+        }
+        if (playAgainLabel) playAgainLabel.textContent = 'PLAY AGAIN';
+        if (playAgainBtn) {
+          playAgainBtn.className = 'gold-btn w-[260px] h-[74px] rounded-full flex items-center justify-center space-x-3 cursor-pointer transition-transform active:scale-95 shadow-[0_0_20px_rgba(255,180,0,0.6)]';
+        }
+        sound.playSuccess();
+      } else {
+        // CHALLENGE FAILED (Lost run / target score not reached / timed out / strikes out)
+        if (statusPill) {
+          statusPill.className = 'mb-4 px-6 py-1.5 rounded-full bg-red-950/70 border border-red-500/50 backdrop-blur-md shadow-[0_0_16px_rgba(255,46,77,0.35)] flex items-center justify-center';
+        }
+        if (badgeEl) {
+          badgeEl.textContent = 'CHALLENGE FAILED';
+          badgeEl.className = 'font-orbitron font-bold text-[17px] tracking-[0.22em] text-[#FF4560] uppercase';
+        }
+        if (titleEl) {
+          titleEl.textContent = 'FAILED!';
+          titleEl.className = 'font-orbitron font-black italic text-[50px] tracking-[0.05em] text-[#FF2E4D] uppercase drop-shadow-[0_0_24px_rgba(255,46,77,0.95)] pr-2';
+        }
+        if (subEl) {
+          if (runState.timedOut) {
+            subEl.innerHTML = "Time's up! <span class=\"text-[#FF8095] drop-shadow-[0_0_14px_rgba(255,60,80,0.8)]\">Challenge session expired</span>";
+          } else if (runState.strikes >= MAX_STRIKES) {
+            subEl.innerHTML = '3 Strikes! <span class="text-[#FF8095] drop-shadow-[0_0_14px_rgba(255,60,80,0.8)]">Urban rush was too fast</span>';
+          } else {
+            subEl.innerHTML = `Target score not reached. <span class="text-[#FF8095] drop-shadow-[0_0_14px_rgba(255,60,80,0.8)]">Need ${kioskSettings.winTargetPts.toLocaleString()} PTS to win</span>`;
+          }
+        }
+        if (statsCard) {
+          statsCard.className = 'mb-6 px-7 py-2.5 rounded-2xl bg-[#1c080d]/90 border border-red-500/60 backdrop-blur-md shadow-[0_0_20px_rgba(255,40,60,0.35)] flex items-center justify-center space-x-7';
+        }
+        if (finalScoreEl) {
+          finalScoreEl.className = 'font-orbitron font-black text-[26px] text-[#FF4560] drop-shadow-[0_0_12px_rgba(255,69,96,0.9)]';
+        }
+        if (boxCard) {
+          boxCard.className = 'relative mb-6 p-4 rounded-2xl bg-[#170a13]/85 border-2 border-red-500/60 shadow-[0_0_30px_rgba(255,46,77,0.35)] flex flex-col items-center';
+        }
+        if (fbCard) {
+          fbCard.className = 'relative mb-8 px-8 py-3 rounded-2xl bg-[#12050b]/90 border border-red-500/40 flex items-center justify-center space-x-3.5 shadow-[0_0_20px_rgba(255,40,60,0.25)]';
+        }
+        if (iconWrap) {
+          iconWrap.innerHTML = `
+            <svg class="w-14 h-14 drop-shadow-[0_0_20px_rgba(255,46,77,0.95)]" fill="none" stroke="#FF2E4D" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="10" stroke-width="2.3" stroke="#FF2E4D" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 9l-6 6m0-6l6 6" />
+            </svg>
+          `;
+        }
+        if (playAgainLabel) playAgainLabel.textContent = 'TRY AGAIN';
+        if (playAgainBtn) {
+          playAgainBtn.className = 'gold-btn w-[260px] h-[74px] rounded-full flex items-center justify-center space-x-3 cursor-pointer transition-transform active:scale-95 shadow-[0_0_20px_rgba(255,70,50,0.6)]';
+        }
+        sound.playGameOver();
+      }
+
+      renderPrizeQr();
+      showScreen('screenQR');
+    }
+
+    function renderPrizeQr() {
+      const box = document.getElementById('qrBox');
+      box.innerHTML = '';
+      if (window.QRCode) {
+        new QRCode(box, {
+          text: PRIZE_QR_URL,
+          width: 226,
+          height: 226,
+          colorDark: '#020712',
+          colorLight: '#FFFFFF',
+          correctLevel: QRCode.CorrectLevel.M,
+        });
+      } else {
+        // CDN failed → show the link as text so the kiosk still guides the rider
+        box.innerHTML = `<span class="font-orbitron font-bold text-[18px] text-[#020712] text-center px-4 break-all">${PRIZE_QR_URL}</span>`;
+      }
+    }
+
+    document.getElementById('btnQrPlayAgain').addEventListener('click', () => {
+      sound.playStartBeep();
+      resetToTitle();
+    });
+
+    document.getElementById('btnQrLeaderboard').addEventListener('click', () => {
+      sound.playTick();
+      renderLeaderboard(registeredPlayer.name || null);
+      showScreen('screenLeaderboard');
+    });
+
+    document.getElementById('btnQrHome').addEventListener('click', () => {
+      sound.playStartBeep();
+      resetToTitle();
+    });
+
+    document.getElementById('btnLeaderboardClaimPrize').addEventListener('click', () => {
+      showQrScreen(runState.winner);
+    });
+
+    /* ==========================================================
+       17. OPERATOR SETTINGS PANEL
+       (tap SETTINGS in header, long-press Yamaha logo, or press "A")
+       Adjust prize target points, session time limit, challenge speed & points.
+       ========================================================== */
+    let admWorking = { ...kioskSettings };
+
+    function openAdmin() {
+      admWorking = {
+        winTargetPts: kioskSettings.winTargetPts || DEFAULT_SETTINGS.winTargetPts,
+        timeLimitSec: kioskSettings.timeLimitSec || DEFAULT_SETTINGS.timeLimitSec,
+        basePoints: kioskSettings.basePoints || DEFAULT_SETTINGS.basePoints,
+        recreateExtraSec: kioskSettings.recreateExtraSec ?? DEFAULT_SETTINGS.recreateExtraSec,
+      };
+      updateAdminDisplay();
+      document.getElementById('screenAdmin').classList.remove('hidden');
+    }
+
+    function closeAdmin() {
+      document.getElementById('screenAdmin').classList.add('hidden');
+    }
+
+    function updateAdminDisplay() {
+      document.getElementById('admTargetVal').textContent = admWorking.winTargetPts.toLocaleString();
+      document.getElementById('admTimeVal').textContent = admWorking.timeLimitSec + 's';
+      document.getElementById('admExtraTimeVal').textContent = (admWorking.recreateExtraSec >= 0 ? '+' : '') + admWorking.recreateExtraSec + 's';
+      document.getElementById('admBasePtsVal').textContent = admWorking.basePoints;
+    }
+
+    function updatePrizeLine() {
+      const el = document.getElementById('winTargetLine');
+      if (el) {
+        const textSpan = el.querySelector('span');
+        if (textSpan) {
+          textSpan.textContent = `PRIZE TARGET: ${kioskSettings.winTargetPts.toLocaleString()} PTS WITHIN ${kioskSettings.timeLimitSec}s`;
+        }
+      }
+    }
+
+    // Target points steppers (-500, -100, +100, +500)
+    document.getElementById('admTargetMinus500').addEventListener('click', () => {
+      admWorking.winTargetPts = Math.max(100, admWorking.winTargetPts - 500);
+      updateAdminDisplay(); sound.playTick();
+    });
+    document.getElementById('admTargetMinus').addEventListener('click', () => {
+      admWorking.winTargetPts = Math.max(100, admWorking.winTargetPts - 100);
+      updateAdminDisplay(); sound.playTick();
+    });
+    document.getElementById('admTargetPlus').addEventListener('click', () => {
+      admWorking.winTargetPts = Math.min(99900, admWorking.winTargetPts + 100);
+      updateAdminDisplay(); sound.playTick();
+    });
+    document.getElementById('admTargetPlus500').addEventListener('click', () => {
+      admWorking.winTargetPts = Math.min(99900, admWorking.winTargetPts + 500);
+      updateAdminDisplay(); sound.playTick();
+    });
+
+    // Target points presets
+    document.querySelectorAll('.adm-pts-preset').forEach(btn => {
+      btn.addEventListener('click', () => {
+        admWorking.winTargetPts = parseInt(btn.dataset.val, 10);
+        updateAdminDisplay(); sound.playTap(2);
+      });
+    });
+
+    // Time limit steppers (-30s, -10s, +10s, +30s)
+    document.getElementById('admTimeMinus30').addEventListener('click', () => {
+      admWorking.timeLimitSec = Math.max(30, admWorking.timeLimitSec - 30);
+      updateAdminDisplay(); sound.playTick();
+    });
+    document.getElementById('admTimeMinus').addEventListener('click', () => {
+      admWorking.timeLimitSec = Math.max(30, admWorking.timeLimitSec - 10);
+      updateAdminDisplay(); sound.playTick();
+    });
+    document.getElementById('admTimePlus').addEventListener('click', () => {
+      admWorking.timeLimitSec = Math.min(900, admWorking.timeLimitSec + 10);
+      updateAdminDisplay(); sound.playTick();
+    });
+    document.getElementById('admTimePlus30').addEventListener('click', () => {
+      admWorking.timeLimitSec = Math.min(900, admWorking.timeLimitSec + 30);
+      updateAdminDisplay(); sound.playTick();
+    });
+
+    // Time limit presets
+    document.querySelectorAll('.adm-time-preset').forEach(btn => {
+      btn.addEventListener('click', () => {
+        admWorking.timeLimitSec = parseInt(btn.dataset.val, 10);
+        updateAdminDisplay(); sound.playTap(2);
+      });
+    });
+
+    // Extra recreate time (-5s, +5s)
+    document.getElementById('admExtraTimeMinus').addEventListener('click', () => {
+      admWorking.recreateExtraSec = Math.max(-10, (admWorking.recreateExtraSec || 0) - 5);
+      updateAdminDisplay(); sound.playTick();
+    });
+    document.getElementById('admExtraTimePlus').addEventListener('click', () => {
+      admWorking.recreateExtraSec = Math.min(30, (admWorking.recreateExtraSec || 0) + 5);
+      updateAdminDisplay(); sound.playTick();
+    });
+
+    // Base points (-25, +25)
+    document.getElementById('admBasePtsMinus').addEventListener('click', () => {
+      admWorking.basePoints = Math.max(25, (admWorking.basePoints || 100) - 25);
+      updateAdminDisplay(); sound.playTick();
+    });
+    document.getElementById('admBasePtsPlus').addEventListener('click', () => {
+      admWorking.basePoints = Math.min(500, (admWorking.basePoints || 100) + 25);
+      updateAdminDisplay(); sound.playTick();
+    });
+
+    // Save
+    document.getElementById('admSaveBtn').addEventListener('click', () => {
+      kioskSettings = { ...admWorking };
+      saveKioskSettings();
+      applySettingsToLevels();
+      sound.playSuccess();
+      closeAdmin();
+    });
+
+    // Restore Defaults
+    document.getElementById('admDefaultBtn').addEventListener('click', () => {
+      admWorking = { ...DEFAULT_SETTINGS };
+      updateAdminDisplay();
+      sound.playTick();
+    });
+
+    // Close
+    document.getElementById('admCloseBtn').addEventListener('click', () => {
+      sound.playTick();
+      closeAdmin();
+    });
+
+    // Global Top Header Home Button
+    document.getElementById('globalHomeBtn').addEventListener('click', () => {
+      sound.playStartBeep();
+      resetToTitle();
+    });
+
+    // Global Top Header Settings Button
+    document.getElementById('globalSettingsBtn').addEventListener('click', () => {
+      sound.playTick();
+      openAdmin();
+    });
+
+    // Screen-specific Home / Cancel Buttons
+    ['btnLevelSelectHome', 'btnRegHome', 'btnHowToHome', 'btnCompleteHome', 'btnNameEntryHome'].forEach(id => {
+      const btn = document.getElementById(id);
+      if (btn) {
+        btn.addEventListener('click', () => {
+          sound.playStartBeep();
+          resetToTitle();
+        });
+      }
+    });
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'a' || e.key === 'A') {
+        const adminEl = document.getElementById('screenAdmin');
+        if (adminEl.classList.contains('hidden')) openAdmin(); else closeAdmin();
+      }
+    });
+
+    // Long-press the Yamaha logo (1.3s) opens the settings panel, tap goes to Home
+    const logoWrap = document.getElementById('logoWrap');
+    let logoPressTimer = null;
+    logoWrap.addEventListener('pointerdown', () => {
+      logoPressTimer = setTimeout(() => { logoPressTimer = 'fired'; openAdmin(); }, 1300);
+    });
+    ['pointerup', 'pointerleave', 'pointercancel'].forEach(ev =>
+      logoWrap.addEventListener(ev, () => {
+        if (logoPressTimer !== 'fired') clearTimeout(logoPressTimer);
+        logoPressTimer = null;
+      })
+    );
+    logoWrap.addEventListener('click', () => {
+      if (logoPressTimer === 'fired') { logoPressTimer = null; return; }
+      resetToTitle();
+    });
+
+    /* ==========================================================
+       18. BOOT
+       ========================================================== */
+    applySettingsToLevels();
+    showScreen('screenTitle');
+  </script>
+</body>
+</html>
