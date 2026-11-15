@@ -59,13 +59,12 @@
       margin: 0;
       padding: 0;
       width: 100%;
-      height: 100%;
-      overflow: hidden;
+      min-height: 100%;
       background-color: #01040a;
       font-family: 'Rajdhani', sans-serif;
     }
 
-    /* Fixed 1080x1920 Kiosk Virtual Container - Center-Anchored Auto-Scaler */
+    /* Fixed 1080x1920 Kiosk Virtual Container (Default: Exact 1080x1920 Full Size) */
     #kioskContainer {
       width: 1080px;
       height: 1920px;
@@ -73,11 +72,8 @@
       min-height: 1920px;
       max-width: 1080px;
       max-height: 1920px;
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      transform-origin: center center;
+      position: relative;
+      margin: 0 auto;
       overflow: hidden;
       background-color: #020712;
       box-shadow: 0 0 80px rgba(0, 0, 0, 0.95);
@@ -367,6 +363,12 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
           </svg>
           <span class="font-orbitron font-bold text-[14px] tracking-wider pointer-events-none">SETTINGS</span>
+        </button>
+
+        <!-- 1080x1920 SIZE TOGGLE BUTTON -->
+        <button id="btnScaleToggle" title="Toggle 1080x1920 Full Size vs Auto-Fit" class="h-11 px-3.5 rounded-full bg-slate-950/85 border border-cyan-400/50 backdrop-blur-md flex items-center space-x-1.5 text-cyan-300 shadow-[0_0_15px_rgba(0,240,255,0.35)] hover:border-cyan-300 hover:text-white active:scale-95 transition cursor-pointer">
+          <svg class="w-4 h-4 text-cyan-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-5h-4m4 0v4m0-4l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
+          <span id="btnScaleToggleText" class="font-orbitron font-bold text-[12px] tracking-wider">1080×1920</span>
         </button>
 
         <button id="muteBtn" title="Toggle Sound" class="w-11 h-11 rounded-full bg-slate-950/70 border border-cyan-400/40 backdrop-blur-md flex items-center justify-center text-neonCyan shadow-[0_0_15px_rgba(0,240,255,0.3)] active:scale-95 transition cursor-pointer">
@@ -1199,7 +1201,9 @@
             <span class="font-orbitron font-bold text-[11px] text-cyan-300 tracking-wider">HARDWARE SPEC:</span>
             <span class="font-orbitron font-bold text-[12px] text-white">1080 × 1920 (9:16 KIOSK)</span>
           </div>
-          <span id="admLiveRes" class="font-orbitron font-bold text-[11px] text-cyan-200/80">WINDOW: 1080 × 1920 (1.00x)</span>
+          <button id="admToggleScaleModeBtn" type="button" class="px-3 py-1 rounded-lg bg-cyan-950/90 border border-cyan-400/50 text-cyan-200 font-orbitron font-bold text-[11px] hover:border-cyan-300 active:scale-95 cursor-pointer">
+            MODE: <span id="admLiveRes" class="text-white">1080 × 1920 FULL</span>
+          </button>
         </div>
 
         <!-- Section 1A: ROUND 1 TARGET (NOVICE) -->
@@ -1353,33 +1357,78 @@
   <!-- ==================== KIOSK SCALER & GAME LOGIC ==================== -->
   <script>
     /* ==========================================================
-       1. 1080x1920 AUTO-SCALING ENGINE FOR KIOSK MONITORS
+       1. 1080x1920 KIOSK DISPLAY CONTROLLER
+       Modes:
+       - '1080': Exact 1080px Width x 1920px Height (1:1 Native Kiosk Size, scale 1.00)
+       - 'fit': Auto-scale to fit smaller preview screens
        ========================================================== */
     const kioskContainer = document.getElementById('kioskContainer');
+    let kioskScaleMode = '1080'; // Default: EXACT 1080x1920 FULL SIZE
+    try {
+      const savedMode = localStorage.getItem('umr_scale_mode');
+      if (savedMode === '1080' || savedMode === 'fit') kioskScaleMode = savedMode;
+    } catch(e) {}
 
     function scaleKiosk() {
-      const targetW = 1080;
-      const targetH = 1920;
-      const scaleX = window.innerWidth / targetW;
-      const scaleY = window.innerHeight / targetH;
-      let scale = Math.min(scaleX, scaleY);
-
-      // On portrait kiosk screens where width is ~1080 (e.g. 1080x1920 portrait kiosk display),
-      // snap to full 1080 width if browser bar/taskbar takes only minimal height:
-      if (Math.abs(scaleX - 1.0) < 0.05 && scaleY >= 0.88) {
-        scale = scaleX;
-      }
-
-      kioskContainer.style.transform = `translate(-50%, -50%) scale(${scale})`;
-
+      const btnText = document.getElementById('btnScaleToggleText');
       const liveRes = document.getElementById('admLiveRes');
-      if (liveRes) {
-        liveRes.textContent = `WINDOW: ${window.innerWidth} × ${window.innerHeight} (${scale.toFixed(2)}x)`;
+
+      if (kioskScaleMode === '1080') {
+        // EXACT 1080x1920 NATIVE FULL SIZE (No shrinking)
+        kioskContainer.style.position = 'relative';
+        kioskContainer.style.top = 'auto';
+        kioskContainer.style.left = 'auto';
+        kioskContainer.style.margin = '0 auto';
+        kioskContainer.style.transform = 'none';
+        if (document.body) document.body.style.overflow = 'auto';
+        if (document.documentElement) document.documentElement.style.overflow = 'auto';
+        if (btnText) btnText.textContent = '1080×1920';
+        if (liveRes) liveRes.textContent = '1080 × 1920 FULL';
+      } else {
+        // FIT TO SCREEN (Auto-scaled down for small preview windows)
+        const targetW = 1080;
+        const targetH = 1920;
+        const scaleX = window.innerWidth / targetW;
+        const scaleY = window.innerHeight / targetH;
+        let scale = Math.min(scaleX, scaleY);
+
+        if (Math.abs(scaleX - 1.0) < 0.05 && scaleY >= 0.88) {
+          scale = scaleX;
+        }
+
+        kioskContainer.style.position = 'absolute';
+        kioskContainer.style.top = '50%';
+        kioskContainer.style.left = '50%';
+        kioskContainer.style.margin = '0';
+        kioskContainer.style.transform = `translate(-50%, -50%) scale(${scale})`;
+        if (document.body) document.body.style.overflow = 'hidden';
+        if (document.documentElement) document.documentElement.style.overflow = 'hidden';
+        if (btnText) btnText.textContent = `FIT (${Math.round(scale * 100)}%)`;
+        if (liveRes) liveRes.textContent = `FIT (${scale.toFixed(2)}x)`;
       }
     }
     window.addEventListener('resize', scaleKiosk);
     window.addEventListener('orientationchange', scaleKiosk);
     scaleKiosk();
+
+    function toggleKioskScaleMode() {
+      kioskScaleMode = (kioskScaleMode === '1080') ? 'fit' : '1080';
+      try { localStorage.setItem('umr_scale_mode', kioskScaleMode); } catch(e){}
+      try { if (window.sound) sound.playTick(); } catch(e){}
+      scaleKiosk();
+    }
+
+    const scaleToggleBtn = document.getElementById('btnScaleToggle');
+    if (scaleToggleBtn) {
+      scaleToggleBtn.addEventListener('click', toggleKioskScaleMode);
+      scaleToggleBtn.addEventListener('touchend', (e) => { e.preventDefault(); toggleKioskScaleMode(); });
+    }
+
+    const admScaleToggleBtn = document.getElementById('admToggleScaleModeBtn');
+    if (admScaleToggleBtn) {
+      admScaleToggleBtn.addEventListener('click', toggleKioskScaleMode);
+      admScaleToggleBtn.addEventListener('touchend', (e) => { e.preventDefault(); toggleKioskScaleMode(); });
+    }
 
     /* ==========================================================
        2. KIOSK INACTIVITY AUTO-RESET (45 SECONDS)
@@ -2610,8 +2659,7 @@
       if (extraVal) extraVal.textContent = (admWorking.recreateExtraSec >= 0 ? '+' : '') + admWorking.recreateExtraSec + 's';
       if (baseVal) baseVal.textContent = admWorking.basePoints;
       if (liveRes) {
-        const scale = Math.min(window.innerWidth / 1080, window.innerHeight / 1920);
-        liveRes.textContent = `WINDOW: ${window.innerWidth} × ${window.innerHeight} (${scale.toFixed(2)}x)`;
+        liveRes.textContent = (kioskScaleMode === '1080') ? '1080 × 1920 FULL' : 'FIT TO WINDOW';
       }
     }
 
