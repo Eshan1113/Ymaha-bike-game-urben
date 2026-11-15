@@ -59,12 +59,18 @@
       margin: 0;
       padding: 0;
       width: 100%;
-      min-height: 100%;
+      height: 100%;
+      overflow: hidden;
       background-color: #01040a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       font-family: 'Rajdhani', sans-serif;
+      overscroll-behavior: none;
+      touch-action: manipulation;
     }
 
-    /* Fixed 1080x1920 Kiosk Virtual Container (Default: Exact 1080x1920 Full Size) */
+    /* Fixed 1080x1920 Kiosk Virtual Container */
     #kioskContainer {
       width: 1080px;
       height: 1920px;
@@ -72,8 +78,11 @@
       min-height: 1920px;
       max-width: 1080px;
       max-height: 1920px;
-      position: relative;
-      margin: 0 auto;
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      transform-origin: center center;
       overflow: hidden;
       background-color: #020712;
       box-shadow: 0 0 80px rgba(0, 0, 0, 0.95);
@@ -363,12 +372,6 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
           </svg>
           <span class="font-orbitron font-bold text-[14px] tracking-wider pointer-events-none">SETTINGS</span>
-        </button>
-
-        <!-- 1080x1920 SIZE TOGGLE BUTTON -->
-        <button id="btnScaleToggle" title="Toggle 1080x1920 Full Size vs Auto-Fit" class="h-11 px-3.5 rounded-full bg-slate-950/85 border border-cyan-400/50 backdrop-blur-md flex items-center space-x-1.5 text-cyan-300 shadow-[0_0_15px_rgba(0,240,255,0.35)] hover:border-cyan-300 hover:text-white active:scale-95 transition cursor-pointer">
-          <svg class="w-4 h-4 text-cyan-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-5h-4m4 0v4m0-4l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
-          <span id="btnScaleToggleText" class="font-orbitron font-bold text-[12px] tracking-wider">1080×1920</span>
         </button>
 
         <button id="muteBtn" title="Toggle Sound" class="w-11 h-11 rounded-full bg-slate-950/70 border border-cyan-400/40 backdrop-blur-md flex items-center justify-center text-neonCyan shadow-[0_0_15px_rgba(0,240,255,0.3)] active:scale-95 transition cursor-pointer">
@@ -1210,9 +1213,7 @@
             <span class="font-orbitron font-bold text-[11px] text-cyan-300 tracking-wider">HARDWARE SPEC:</span>
             <span class="font-orbitron font-bold text-[12px] text-white">1080 × 1920 (9:16 KIOSK)</span>
           </div>
-          <button id="admToggleScaleModeBtn" type="button" class="px-3 py-1 rounded-lg bg-cyan-950/90 border border-cyan-400/50 text-cyan-200 font-orbitron font-bold text-[11px] hover:border-cyan-300 active:scale-95 cursor-pointer">
-            MODE: <span id="admLiveRes" class="text-white">1080 × 1920 FULL</span>
-          </button>
+          <span class="font-orbitron font-bold text-[11px] text-cyan-300/80 uppercase">PORTRAIT 9:16</span>
         </div>
 
         <!-- Section 1A: ROUND 1 TARGET (NOVICE) -->
@@ -1367,77 +1368,20 @@
   <script>
     /* ==========================================================
        1. 1080x1920 KIOSK DISPLAY CONTROLLER
-       Modes:
-       - '1080': Exact 1080px Width x 1920px Height (1:1 Native Kiosk Size, scale 1.00)
-       - 'fit': Auto-scale to fit smaller preview screens
+       Automatically centers and proportionally scales the 1080x1920
+       kiosk virtual stage to fit any screen with zero distortion.
        ========================================================== */
     const kioskContainer = document.getElementById('kioskContainer');
-    let kioskScaleMode = '1080'; // Default: EXACT 1080x1920 FULL SIZE
-    try {
-      const savedMode = localStorage.getItem('umr_scale_mode');
-      if (savedMode === '1080' || savedMode === 'fit') kioskScaleMode = savedMode;
-    } catch(e) {}
 
     function scaleKiosk() {
-      const btnText = document.getElementById('btnScaleToggleText');
-      const liveRes = document.getElementById('admLiveRes');
-
-      if (kioskScaleMode === '1080') {
-        // EXACT 1080x1920 NATIVE FULL SIZE (No shrinking)
-        kioskContainer.style.position = 'relative';
-        kioskContainer.style.top = 'auto';
-        kioskContainer.style.left = 'auto';
-        kioskContainer.style.margin = '0 auto';
-        kioskContainer.style.transform = 'none';
-        if (document.body) document.body.style.overflow = 'auto';
-        if (document.documentElement) document.documentElement.style.overflow = 'auto';
-        if (btnText) btnText.textContent = '1080×1920';
-        if (liveRes) liveRes.textContent = '1080 × 1920 FULL';
-      } else {
-        // FIT TO SCREEN (Auto-scaled down for small preview windows)
-        const targetW = 1080;
-        const targetH = 1920;
-        const scaleX = window.innerWidth / targetW;
-        const scaleY = window.innerHeight / targetH;
-        let scale = Math.min(scaleX, scaleY);
-
-        if (Math.abs(scaleX - 1.0) < 0.05 && scaleY >= 0.88) {
-          scale = scaleX;
-        }
-
-        kioskContainer.style.position = 'absolute';
-        kioskContainer.style.top = '50%';
-        kioskContainer.style.left = '50%';
-        kioskContainer.style.margin = '0';
-        kioskContainer.style.transform = `translate(-50%, -50%) scale(${scale})`;
-        if (document.body) document.body.style.overflow = 'hidden';
-        if (document.documentElement) document.documentElement.style.overflow = 'hidden';
-        if (btnText) btnText.textContent = `FIT (${Math.round(scale * 100)}%)`;
-        if (liveRes) liveRes.textContent = `FIT (${scale.toFixed(2)}x)`;
-      }
+      const scaleX = window.innerWidth / 1080;
+      const scaleY = window.innerHeight / 1920;
+      const scale = Math.min(scaleX, scaleY);
+      kioskContainer.style.transform = `translate(-50%, -50%) scale(${scale})`;
     }
     window.addEventListener('resize', scaleKiosk);
     window.addEventListener('orientationchange', scaleKiosk);
     scaleKiosk();
-
-    function toggleKioskScaleMode() {
-      kioskScaleMode = (kioskScaleMode === '1080') ? 'fit' : '1080';
-      try { localStorage.setItem('umr_scale_mode', kioskScaleMode); } catch(e){}
-      try { if (window.sound) sound.playTick(); } catch(e){}
-      scaleKiosk();
-    }
-
-    const scaleToggleBtn = document.getElementById('btnScaleToggle');
-    if (scaleToggleBtn) {
-      scaleToggleBtn.addEventListener('click', toggleKioskScaleMode);
-      scaleToggleBtn.addEventListener('touchend', (e) => { e.preventDefault(); toggleKioskScaleMode(); });
-    }
-
-    const admScaleToggleBtn = document.getElementById('admToggleScaleModeBtn');
-    if (admScaleToggleBtn) {
-      admScaleToggleBtn.addEventListener('click', toggleKioskScaleMode);
-      admScaleToggleBtn.addEventListener('touchend', (e) => { e.preventDefault(); toggleKioskScaleMode(); });
-    }
 
     /* ==========================================================
        2. KIOSK INACTIVITY AUTO-RESET (45 SECONDS)
@@ -1607,19 +1551,45 @@
     }
 
     async function dbSaveScore(id, score, levelReached) {
-      if (!id) return false;
       try {
-        const res = await fetchWithTimeout(`${SUPABASE_URL}/rest/v1/urban_players?id=eq.${id}`, {
-          method: 'PATCH',
-          headers: {
-            apikey: SUPABASE_PUBLISHABLE_KEY,
-            Authorization: `Bearer ${SUPABASE_PUBLISHABLE_KEY}`,
-            'Content-Type': 'application/json',
-            Prefer: 'return=representation',
-          },
-          body: JSON.stringify({ score, level_reached: levelReached }),
-        }, 3000);
-        return res.ok;
+        if (id) {
+          const res = await fetchWithTimeout(`${SUPABASE_URL}/rest/v1/urban_players?id=eq.${id}`, {
+            method: 'PATCH',
+            headers: {
+              apikey: SUPABASE_PUBLISHABLE_KEY,
+              Authorization: `Bearer ${SUPABASE_PUBLISHABLE_KEY}`,
+              'Content-Type': 'application/json',
+              Prefer: 'return=representation',
+            },
+            body: JSON.stringify({ score, level_reached: levelReached }),
+          }, 3500);
+          return res.ok;
+        } else if (registeredPlayer.name) {
+          // Fallback: If id wasn't captured initially, insert player score now
+          const res = await fetchWithTimeout(`${SUPABASE_URL}/rest/v1/urban_players`, {
+            method: 'POST',
+            headers: {
+              apikey: SUPABASE_PUBLISHABLE_KEY,
+              Authorization: `Bearer ${SUPABASE_PUBLISHABLE_KEY}`,
+              'Content-Type': 'application/json',
+              Prefer: 'return=representation',
+            },
+            body: JSON.stringify({
+              name: registeredPlayer.name.toUpperCase(),
+              phone: registeredPlayer.phone || '0000000000',
+              score: score,
+              level_reached: levelReached
+            }),
+          }, 3500);
+          if (res.ok) {
+            const rows = await res.json();
+            if (Array.isArray(rows) && rows[0] && rows[0].id) {
+              registeredPlayer.id = rows[0].id;
+            }
+          }
+          return res.ok;
+        }
+        return false;
       } catch (e) {
         return false;
       }
@@ -1627,14 +1597,15 @@
 
     async function dbTopScores() {
       try {
-        const res = await fetchWithTimeout(`${SUPABASE_URL}/rest/v1/urban_players?select=name,score&order=score.desc&limit=5`, {
+        const res = await fetchWithTimeout(`${SUPABASE_URL}/rest/v1/urban_players?select=name,score&order=score.desc,created_at.desc&limit=25`, {
           headers: {
             apikey: SUPABASE_PUBLISHABLE_KEY,
             Authorization: `Bearer ${SUPABASE_PUBLISHABLE_KEY}`,
           },
-        }, 2500);
+        }, 4000);
         if (!res.ok) throw new Error(await res.text());
-        return await res.json();
+        const data = await res.json();
+        return Array.isArray(data) ? data : [];
       } catch (e) {
         return []; // fall back to local scores
       }
@@ -2364,16 +2335,9 @@
     });
 
     /* ==========================================================
-       13. LEADERBOARD
+       13. LEADERBOARD (REAL DATABASE RETRIEVAL)
        ========================================================== */
-    const LB_KEY = 'umr_leaderboard_v1';
-    const LB_SEED = [
-      { name: 'DILSHAN P', score: 4980 },
-      { name: 'HAMAIL A',  score: 3270 },
-      { name: 'RAYAN S',   score: 2890 },
-      { name: 'MATEEN R',  score: 2680 },
-      { name: 'MEHDI M K', score: 2490 },
-    ];
+    const LB_KEY = 'umr_leaderboard_v2';
 
     function loadLeaderboard() {
       try {
@@ -2387,18 +2351,44 @@
       const list = loadLeaderboard();
       list.push({ name, score: runState.score });
       list.sort((a, b) => b.score - a.score);
-      try { localStorage.setItem(LB_KEY, JSON.stringify(list.slice(0, 25))); } catch (e) {}
+      try { localStorage.setItem(LB_KEY, JSON.stringify(list.slice(0, 50))); } catch (e) {}
       runState.lastRunSaved = true;
     }
 
     async function renderLeaderboard(highlightName) {
       const listEl = document.getElementById('leaderboardList');
-      listEl.innerHTML = '<div class="font-orbitron text-[20px] tracking-[0.3em] text-cyan-300/70 uppercase text-center py-10">LOADING SCORES...</div>';
+      listEl.innerHTML = '<div class="font-orbitron text-[20px] tracking-[0.3em] text-cyan-300/70 uppercase text-center py-10">RETRIEVING DATABASE SCORES...</div>';
 
-      // Top scores from the database + local kiosk backup + seeded samples
+      // 1. Retrieve real scores from Supabase & local kiosk backup
       const dbScores = await dbTopScores();
       const local = loadLeaderboard();
-      const merged = [...dbScores, ...local, ...LB_SEED].sort((a, b) => b.score - a.score).slice(0, 5);
+
+      // 2. Combine real data and deduplicate by player name (keeping highest personal score)
+      const scoreMap = new Map();
+      [...dbScores, ...local].forEach(entry => {
+        if (!entry || !entry.name) return;
+        const name = String(entry.name).trim().toUpperCase();
+        if (!name || name === 'PLAYER' || name === 'RIDER') return; // skip placeholder defaults
+        const score = Number(entry.score) || 0;
+        if (!scoreMap.has(name) || scoreMap.get(name).score < score) {
+          scoreMap.set(name, { name, score });
+        }
+      });
+
+      // Also ensure current active player is included if they have a recorded score
+      if (highlightName) {
+        const hName = highlightName.trim().toUpperCase();
+        if (hName && hName !== 'PLAYER' && hName !== 'RIDER') {
+          if (!scoreMap.has(hName) || scoreMap.get(hName).score < runState.score) {
+            scoreMap.set(hName, { name: hName, score: runState.score });
+          }
+        }
+      }
+
+      // Sort by score descending and take top 5
+      const merged = Array.from(scoreMap.values())
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 5);
 
       const rankStyles = [
         { bg: 'linear-gradient(180deg, #FFE9A8, #FFBB00)', ring: 'rgba(255,190,0,0.95)', txt: '#3A2600' },
@@ -2407,8 +2397,20 @@
       ];
 
       listEl.innerHTML = '';
+
+      if (merged.length === 0) {
+        listEl.innerHTML = `
+          <div class="flex flex-col items-center justify-center py-14 text-center space-y-3">
+            <svg class="w-14 h-14 text-cyan-400/50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            <span class="font-orbitron font-bold text-[22px] tracking-[0.18em] text-cyan-200 uppercase">NO PLAYERS ON THE BOARD YET</span>
+            <span class="font-rajdhani font-semibold text-[17px] text-cyan-400/70 tracking-wider">BE THE FIRST RIDER TO SET A RECORD!</span>
+          </div>
+        `;
+        return;
+      }
+
       merged.forEach((entry, i) => {
-        const isPlayer = highlightName && entry.name === highlightName;
+        const isPlayer = highlightName && entry.name === highlightName.trim().toUpperCase();
         const style = i < 3 ? rankStyles[i] : null;
         const row = document.createElement('div');
         row.className = 'w-full flex items-center px-6 py-3 rounded-xl';
@@ -2671,15 +2673,11 @@
       const timeVal = document.getElementById('admTimeVal');
       const extraVal = document.getElementById('admExtraTimeVal');
       const baseVal = document.getElementById('admBasePtsVal');
-      const liveRes = document.getElementById('admLiveRes');
       if (t1Val) t1Val.textContent = (admWorking.winTargetPts || 500).toLocaleString();
       if (t2Val) t2Val.textContent = (admWorking.winTargetPtsLvl2 || 1000).toLocaleString();
       if (timeVal) timeVal.textContent = admWorking.timeLimitSec + 's';
       if (extraVal) extraVal.textContent = (admWorking.recreateExtraSec >= 0 ? '+' : '') + admWorking.recreateExtraSec + 's';
       if (baseVal) baseVal.textContent = admWorking.basePoints;
-      if (liveRes) {
-        liveRes.textContent = (kioskScaleMode === '1080') ? '1080 × 1920 FULL' : 'FIT TO WINDOW';
-      }
     }
 
     function updatePrizeLine() {
